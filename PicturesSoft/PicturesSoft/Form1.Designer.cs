@@ -30,8 +30,12 @@
         {
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.listBox1 = new System.Windows.Forms.ListBox();
-            this.button1 = new System.Windows.Forms.Button();
-            this.listView1 = new System.Windows.Forms.ListView();
+            this.BackToGroupsBtn = new System.Windows.Forms.Button();
+            this.groupsListView = new System.Windows.Forms.ListView();
+            this.childsListView = new System.Windows.Forms.ListView();
+            this.createNewItemBtn = new System.Windows.Forms.Button();
+            this.editSelectedBtn = new System.Windows.Forms.Button();
+            this.deleteSelectedBtn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -50,39 +54,92 @@
             // listBox1
             // 
             this.listBox1.FormattingEnabled = true;
-            this.listBox1.Location = new System.Drawing.Point(668, 26);
+            this.listBox1.Location = new System.Drawing.Point(12, 131);
             this.listBox1.Name = "listBox1";
             this.listBox1.Size = new System.Drawing.Size(120, 95);
             this.listBox1.TabIndex = 1;
             // 
-            // button1
+            // BackToGroupsBtn
             // 
-            this.button1.Location = new System.Drawing.Point(668, 195);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 2;
-            this.button1.Text = "button1";
-            this.button1.UseVisualStyleBackColor = true;
+            this.BackToGroupsBtn.Location = new System.Drawing.Point(329, 320);
+            this.BackToGroupsBtn.Name = "BackToGroupsBtn";
+            this.BackToGroupsBtn.Size = new System.Drawing.Size(75, 23);
+            this.BackToGroupsBtn.TabIndex = 2;
+            this.BackToGroupsBtn.Text = "Back";
+            this.BackToGroupsBtn.UseVisualStyleBackColor = true;
+            this.BackToGroupsBtn.Click += new System.EventHandler(this.BackToGroupsBtn_Click);
             // 
-            // listView1
+            // groupsListView
             // 
-            this.listView1.Location = new System.Drawing.Point(289, 26);
-            this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(121, 97);
-            this.listView1.TabIndex = 3;
-            this.listView1.UseCompatibleStateImageBehavior = false;
+            this.groupsListView.HideSelection = false;
+            this.groupsListView.Location = new System.Drawing.Point(329, 187);
+            this.groupsListView.MultiSelect = false;
+            this.groupsListView.Name = "groupsListView";
+            this.groupsListView.Size = new System.Drawing.Size(236, 127);
+            this.groupsListView.TabIndex = 3;
+            this.groupsListView.UseCompatibleStateImageBehavior = false;
+            this.groupsListView.ItemSelectionChanged += new System.Windows.Forms.ListViewItemSelectionChangedEventHandler(this.groupsListView_ItemSelectionChanged);
+            this.groupsListView.VisibleChanged += new System.EventHandler(this.groupsListView_VisibleChanged);
+            this.groupsListView.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.groupsListView_MouseDoubleClick);
+            // 
+            // childsListView
+            // 
+            this.childsListView.HideSelection = false;
+            this.childsListView.Location = new System.Drawing.Point(329, 187);
+            this.childsListView.MultiSelect = false;
+            this.childsListView.Name = "childsListView";
+            this.childsListView.Size = new System.Drawing.Size(236, 127);
+            this.childsListView.TabIndex = 4;
+            this.childsListView.UseCompatibleStateImageBehavior = false;
+            this.childsListView.ItemSelectionChanged += new System.Windows.Forms.ListViewItemSelectionChangedEventHandler(this.childsListView_ItemSelectionChanged);
+            this.childsListView.VisibleChanged += new System.EventHandler(this.childsListView_VisibleChanged);
+            // 
+            // createNewItemBtn
+            // 
+            this.createNewItemBtn.Location = new System.Drawing.Point(571, 187);
+            this.createNewItemBtn.Name = "createNewItemBtn";
+            this.createNewItemBtn.Size = new System.Drawing.Size(75, 23);
+            this.createNewItemBtn.TabIndex = 5;
+            this.createNewItemBtn.Text = "Create";
+            this.createNewItemBtn.UseVisualStyleBackColor = true;
+            this.createNewItemBtn.Click += new System.EventHandler(this.createNewItemBtn_Click);
+            // 
+            // editSelectedBtn
+            // 
+            this.editSelectedBtn.Location = new System.Drawing.Point(571, 216);
+            this.editSelectedBtn.Name = "editSelectedBtn";
+            this.editSelectedBtn.Size = new System.Drawing.Size(75, 23);
+            this.editSelectedBtn.TabIndex = 6;
+            this.editSelectedBtn.Text = "Edit";
+            this.editSelectedBtn.UseVisualStyleBackColor = true;
+            this.editSelectedBtn.Click += new System.EventHandler(this.editSelectedBtn_Click);
+            // 
+            // deleteSelectedBtn
+            // 
+            this.deleteSelectedBtn.Location = new System.Drawing.Point(571, 245);
+            this.deleteSelectedBtn.Name = "deleteSelectedBtn";
+            this.deleteSelectedBtn.Size = new System.Drawing.Size(75, 23);
+            this.deleteSelectedBtn.TabIndex = 7;
+            this.deleteSelectedBtn.Text = "Delete";
+            this.deleteSelectedBtn.UseVisualStyleBackColor = true;
+            this.deleteSelectedBtn.Click += new System.EventHandler(this.deleteSelectedBtn_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.listView1);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.deleteSelectedBtn);
+            this.Controls.Add(this.editSelectedBtn);
+            this.Controls.Add(this.createNewItemBtn);
+            this.Controls.Add(this.childsListView);
+            this.Controls.Add(this.groupsListView);
+            this.Controls.Add(this.BackToGroupsBtn);
             this.Controls.Add(this.listBox1);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
 
         }
@@ -91,8 +148,12 @@
 
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.ListBox listBox1;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.ListView listView1;
+        private System.Windows.Forms.Button BackToGroupsBtn;
+        private System.Windows.Forms.ListView groupsListView;
+        private System.Windows.Forms.ListView childsListView;
+        private System.Windows.Forms.Button createNewItemBtn;
+        private System.Windows.Forms.Button editSelectedBtn;
+        private System.Windows.Forms.Button deleteSelectedBtn;
     }
 }
 
