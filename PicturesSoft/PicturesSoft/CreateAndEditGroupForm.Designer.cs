@@ -47,6 +47,7 @@
             this.opnFileDlgGrBtn.TabIndex = 18;
             this.opnFileDlgGrBtn.Text = "Browse...";
             this.opnFileDlgGrBtn.UseVisualStyleBackColor = true;
+            this.opnFileDlgGrBtn.Click += new System.EventHandler(this.opnFileDlgGrBtn_Click);
             // 
             // groupImgPathTextBox
             // 
@@ -75,9 +76,9 @@
             this.imgPathLable.AutoSize = true;
             this.imgPathLable.Location = new System.Drawing.Point(66, 133);
             this.imgPathLable.Name = "imgPathLable";
-            this.imgPathLable.Size = new System.Drawing.Size(58, 13);
+            this.imgPathLable.Size = new System.Drawing.Size(64, 13);
             this.imgPathLable.TabIndex = 14;
-            this.imgPathLable.Text = "ImagePath";
+            this.imgPathLable.Text = "ImageName";
             // 
             // groupNameLabel
             // 
@@ -105,6 +106,7 @@
             this.CreateAndEditGrCancelBtn.TabIndex = 11;
             this.CreateAndEditGrCancelBtn.Text = "Cancel";
             this.CreateAndEditGrCancelBtn.UseVisualStyleBackColor = true;
+            this.CreateAndEditGrCancelBtn.Click += new System.EventHandler(this.CreateAndEditGrCancelBtn_Click);
             // 
             // CreateAndEditGrSaveBtn
             // 
@@ -114,6 +116,7 @@
             this.CreateAndEditGrSaveBtn.TabIndex = 10;
             this.CreateAndEditGrSaveBtn.Text = "Save";
             this.CreateAndEditGrSaveBtn.UseVisualStyleBackColor = true;
+            this.CreateAndEditGrSaveBtn.Click += new System.EventHandler(this.CreateAndEditGrSaveBtn_Click);
             // 
             // CreateAndEditGroupForm
             // 
