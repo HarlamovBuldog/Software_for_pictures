@@ -18,14 +18,14 @@ namespace PicturesSoft
         public static Group CreateGroup(
             int id,
             string name,
-            string imgPath
+            string imgName
             )
         {
             return new Group
             {
                 Id = id,
                 Name = name,
-                ImgPath = imgPath
+                ImgName = imgName
             };
         }
 
@@ -50,13 +50,13 @@ namespace PicturesSoft
         /// <summary>
         /// Gets/sets the group background image's path.  
         /// </summary>
-        public string ImgPath { get; set; }
+        public string ImgName { get; set; }
 
         #endregion // State Properties
 
         public override string ToString()
         {
-            return String.Format("{0} {1} {2}", Id, Name, ImgPath);
+            return String.Format("{0} {1} {2}", Id, Name, ImgName);
         }
     }
 }

@@ -21,7 +21,7 @@ namespace PicturesSoft
             string name,
             string simpleName,
             int groupCode,
-            string imgPath
+            string imgName
             )
         {
             return new Child
@@ -30,7 +30,7 @@ namespace PicturesSoft
                 Name = name,
                 SimpleName = simpleName,
                 GroupCode = groupCode,
-                ImgPath = imgPath
+                ImgName = imgName
             };
         }
 
@@ -65,7 +65,7 @@ namespace PicturesSoft
         /// <summary>
         /// Gets/sets the child container background image's path.  
         /// </summary>
-        public string ImgPath { get; set; }
+        public string ImgName { get; set; }
 
         #endregion // State Properties
     }

@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <childs>
-  <child code="12" name="qwerty" simpleName="qw"  groupCode="12" imgPath="undef" />
-  <child code="22" name="asdfgh" simpleName="asd" groupCode="22" imgPath="undef"  />
-  <child code="34" name="zxcv"   simpleName="zx"  groupCode="34" imgPath="undef"  />
+  <child code="12" name="qwerty" simpleName="qw"  groupCode="12" imgName="undef" />
+  <child code="22" name="asdfgh" simpleName="asd" groupCode="22" imgName="undef"  />
+  <child code="34" name="zxcv"   simpleName="zx"  groupCode="34" imgName="undef"  />
 </childs>

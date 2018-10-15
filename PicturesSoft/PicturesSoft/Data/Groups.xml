@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <groups>
-  <group id="12"      name="Хлеб"         imgPath="undef" />
-  <group id="22"      name="Булка"        imgPath="undef" />
-  <group id="34"      name="Упаковка"     imgPath="undef" />
-  <group id="36"      name="Упаковка1"     imgPath="undef" />
-  <group id="38"      name="Упаковка2"     imgPath="undef" />
-  <group id="40"      name="Упаковка3"     imgPath="undef" />
+  <group id="12"      name="Хлеб"         imgName="undef" />
+  <group id="22"      name="Булка"        imgName="undef" />
+  <group id="34"      name="Упаковка"     imgName="undef" />
+  <group id="36"      name="Упаковка1"     imgName="undef" />
+  <group id="38"      name="Упаковка2"     imgName="undef" />
+  <group id="40"      name="Упаковка3"     imgName="undef" />
 </groups>
