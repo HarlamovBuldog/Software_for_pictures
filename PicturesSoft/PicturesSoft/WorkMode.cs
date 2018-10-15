@@ -6,7 +6,12 @@ using System.Threading.Tasks;
 
 namespace PicturesSoft
 {
-    public enum WorkMode
+    public class WorkMode
+    {
+        public WorkModeType WorkType { get; set; }
+    }
+
+    public enum WorkModeType
     {
         Create,
         Edit

@@ -97,18 +97,14 @@ namespace PicturesSoft
 
         static List<Child> LoadChilds(string childDataFile)
         {
-            // In a real application, the data would come from an external source,
-            // but for this demo let's keep things simple and use a resource file.
-            using (Stream stream = GetResourceStream(childDataFile))
-            using (XmlReader xmlRdr = new XmlTextReader(stream))
                 return
-                    (from childElem in XDocument.Load(xmlRdr).Element("childs").Elements("child")
+                    (from childElem in XDocument.Load(childDataFile).Element("childs").Elements("child")
                      select Child.CreateChild(
                         (int)childElem.Attribute("code"),
                         (string)childElem.Attribute("name"),
                         (string)childElem.Attribute("simpleName"),
                         (int)childElem.Attribute("groupCode"),
-                        (string)childElem.Attribute("imgPath")
+                        (string)childElem.Attribute("imgName")
                          )).ToList();
         }
 
