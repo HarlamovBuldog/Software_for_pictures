@@ -16,8 +16,21 @@ namespace PicturesSoft
         #region Fields
 
         readonly List<Group> _groups;
+        static string _groupDataFile;
 
         #endregion // Fields
+
+        public static string GroupDataFile
+        {
+            get
+            {
+                return _groupDataFile;
+            }
+            set
+            {
+                _groupDataFile = value;
+            }
+        }
 
         #region Constructor
 
@@ -27,7 +40,8 @@ namespace PicturesSoft
         /// <param name="groupDataFile">The relative path to an XML resource file that contains group data.</param>
         public GroupRepository(string groupDataFile)
         {
-            _groups = LoadGroups(groupDataFile);
+            GroupDataFile = groupDataFile;
+            _groups = LoadGroups(); 
         }
 
         #endregion // Constructor
@@ -52,6 +66,8 @@ namespace PicturesSoft
             if (!_groups.Contains(group))
             {
                 _groups.Add(group);
+
+                AddGroupToXml(group);
 
                // if (this.GroupAdded != null)
                 //    this.GroupAdded(this, new GroupAddedEventArgs(group));
@@ -82,26 +98,55 @@ namespace PicturesSoft
 
         #region Private Helpers
 
-        static List<Group> LoadGroups(string groupDataFile)
+        static List<Group> LoadGroups()
         {
-            // In a real application, the data would come from an external source,
-            // but for this demo let's keep things simple and use a resource file.
-            using (Stream stream = GetResourceStream(groupDataFile))
-            using (XmlReader xmlRdr = new XmlTextReader(stream))
                 return
-                    (from groupElem in XDocument.Load(xmlRdr).Element("groups").Elements("group")
+                    (from groupElem in XDocument.Load(GroupDataFile).Element("groups").Elements("group")
                      select Group.CreateGroup(
                         (int)groupElem.Attribute("id"),
                         (string)groupElem.Attribute("name"),
-                        (string)groupElem.Attribute("imgPath")
+                        (string)groupElem.Attribute("imgName")
                          )).ToList();
+        }
+
+        private void AddGroupToXml(Group newGroup)
+        {
+            XmlDocument xDoc = new XmlDocument();
+            xDoc.Load(GroupDataFile);
+            XmlElement xRoot = xDoc.DocumentElement;
+
+            //create new element group
+            XmlElement groupElement = xDoc.CreateElement("group");
+
+            //create attributes (elements) inside group
+            XmlAttribute idAttr = xDoc.CreateAttribute("id");
+            XmlAttribute nameAttr = xDoc.CreateAttribute("name");
+            XmlAttribute imgNameAttr = xDoc.CreateAttribute("imgName");
+
+            //create text values for attributes
+            XmlText idText = xDoc.CreateTextNode(newGroup.Id.ToString());
+            XmlText nameText = xDoc.CreateTextNode(newGroup.Name);
+            XmlText imgNameText = xDoc.CreateTextNode(newGroup.ImgName);
+
+            //add nodes
+            idAttr.AppendChild(idText);
+            nameAttr.AppendChild(nameText);
+            imgNameAttr.AppendChild(imgNameText);
+
+            groupElement.Attributes.Append(idAttr);
+            groupElement.Attributes.Append(nameAttr);
+            groupElement.Attributes.Append(imgNameAttr);
+
+            xRoot.AppendChild(groupElement);
+            xDoc.Save(GroupDataFile);
         }
 
         static Stream GetResourceStream(string resourceFile)
         {
-            Uri uri = new Uri(resourceFile, UriKind.RelativeOrAbsolute);
-            Stream resource = Assembly.GetExecutingAssembly().GetManifestResourceStream(uri.ToString());
+            //Uri uri = new Uri(resourceFile, UriKind.RelativeOrAbsolute);
+            //Stream resource = Assembly.GetExecutingAssembly().GetManifestResourceStream(uri.ToString());
             //StreamResourceInfo info = Application.GetResourceStream(uri);
+            Stream resource = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceFile);
             if (resource == null || resource == null)
                 throw new ApplicationException("Missing resource file: " + resourceFile);
 
