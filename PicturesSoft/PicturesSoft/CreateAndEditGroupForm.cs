@@ -48,6 +48,7 @@ namespace PicturesSoft
 
         #endregion //form creation
 
+
         private void opnFileDlgGrBtn_Click(object sender, System.EventArgs e)
         {
             Stream fileStream = null;
@@ -82,10 +83,12 @@ namespace PicturesSoft
 
         private void CreateAndEditGrSaveBtn_Click(object sender, EventArgs e)
         {
-            //getting values from textboxes
+            //need validation here
+            //< getting values from textboxes
             GroupToEditOrCreate.Id = Int32.Parse(this.groupIdTextBox.Text);
             GroupToEditOrCreate.Name = this.groupNameTextBox.Text;
             GroupToEditOrCreate.ImgName = this.groupImgPathTextBox.Text;
+            //>
 
             if (WorkMode.WorkType.Equals(WorkModeType.Create))
             {
@@ -96,7 +99,10 @@ namespace PicturesSoft
             }
             else if(WorkMode.WorkType.Equals(WorkModeType.Edit))
             {
-
+                if (this.Owner != null)
+                {
+                    ((Form1)this.Owner).UpdateGroup(GroupToEditOrCreate);
+                }
             }
 
             this.Close();

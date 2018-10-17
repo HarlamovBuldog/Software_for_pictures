@@ -36,6 +36,7 @@
             this.createNewItemBtn = new System.Windows.Forms.Button();
             this.editSelectedBtn = new System.Windows.Forms.Button();
             this.deleteSelectedBtn = new System.Windows.Forms.Button();
+            this.createFinalXmlBtn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -124,11 +125,22 @@
             this.deleteSelectedBtn.UseVisualStyleBackColor = true;
             this.deleteSelectedBtn.Click += new System.EventHandler(this.deleteSelectedBtn_Click);
             // 
+            // createFinalXmlBtn
+            // 
+            this.createFinalXmlBtn.Location = new System.Drawing.Point(432, 79);
+            this.createFinalXmlBtn.Name = "createFinalXmlBtn";
+            this.createFinalXmlBtn.Size = new System.Drawing.Size(75, 23);
+            this.createFinalXmlBtn.TabIndex = 8;
+            this.createFinalXmlBtn.Text = "Create final xml";
+            this.createFinalXmlBtn.UseVisualStyleBackColor = true;
+            this.createFinalXmlBtn.Click += new System.EventHandler(this.createFinalXmlBtn_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.createFinalXmlBtn);
             this.Controls.Add(this.deleteSelectedBtn);
             this.Controls.Add(this.editSelectedBtn);
             this.Controls.Add(this.createNewItemBtn);
@@ -154,6 +166,7 @@
         private System.Windows.Forms.Button createNewItemBtn;
         private System.Windows.Forms.Button editSelectedBtn;
         private System.Windows.Forms.Button deleteSelectedBtn;
+        private System.Windows.Forms.Button createFinalXmlBtn;
     }
 }
 
