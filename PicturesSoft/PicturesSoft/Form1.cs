@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace PicturesSoft
 {
@@ -14,6 +17,7 @@ namespace PicturesSoft
         private GroupRepository groupRep;
         private ChildRepository childRep;
         private object globalSelectedItem;
+        private Group groupOwner;
 
         #endregion //private fields
 
@@ -79,13 +83,61 @@ namespace PicturesSoft
 
         #region public methods
 
+        //< Public Group methods
         public void AddNewGroup(Group newGroup)
         {
             groupRep.AddGroup(newGroup);
             GroupListViewRedraw();
         }
 
+        public void UpdateGroup(Group groupToUpdate)
+        {
+            var groupListIndex = groupRep.GetGroups().IndexOf((Group)globalSelectedItem);
+
+            groupRep.UpdateGroup(groupToUpdate, groupListIndex);
+            GroupListViewRedraw();
+        }
+
+        public void DeleteGroup()
+        {
+            var groupListIndex = groupRep.GetGroups().IndexOf((Group)globalSelectedItem);
+
+            groupRep.DeleteGroup(groupListIndex);
+            GroupListViewRedraw();
+
+            //need to also delete all childs connected to the group
+            this.DeleteAllChildsBelongToGroup();
+        }
+        //>
+
+        //< Public Child methods
+
+        public void AddNewChild(Child newChild)
+        {
+            childRep.AddChild(newChild);
+            ChildListViewRedraw();
+        }
+
+        public void UpdateChild(Child childToUpdate)
+        {
+            var childListIndex = childRep.GetChilds().IndexOf((Child)globalSelectedItem);
+
+            childRep.UpdateChild(childToUpdate, childListIndex);
+            ChildListViewRedraw();
+        }
+
+        public void DeleteChild()
+        {
+            var childListIndex = childRep.GetChilds().IndexOf((Child)globalSelectedItem);
+
+            childRep.DeleteChild(childListIndex);
+            ChildListViewRedraw();
+        }
+        //>
+
         #endregion //public methods
+
+        #region Private helpers
 
         private void GroupListViewRedraw()
         {
@@ -95,7 +147,7 @@ namespace PicturesSoft
             {
                 ListViewItem lvi = new ListViewItem();
                 lvi.Text = gr.Name;
-                //lvi.Tag = gr;
+                lvi.Tag = gr;
 
                 this.groupsListView.Items.Add(lvi);
             }
@@ -106,18 +158,11 @@ namespace PicturesSoft
             this.groupsListView.Invalidate();
         }
 
-            #region groupListView Events
-
-        private void groupsListView_MouseDoubleClick(object sender, MouseEventArgs e)
+        private void ChildListViewRedraw()
         {
-            var indexOfSelectedItem = groupsListView.SelectedIndices[0];
-            var selectedGroup = groupRep.GetGroups()[indexOfSelectedItem];
+            var childsListBelongToGroup = childRep.GetChildsBelongToGroup(groupOwner.Id);
 
-            var childsListBelongToGroup = childRep.GetChildsBelongToGroup(selectedGroup.Id);
-
-            this.childsListView.BeginUpdate();
-
-            if(this.childsListView.Items.Count != 0)
+            if (this.childsListView.Items.Count != 0)
             {
                 childsListView.Items.Clear();
             }
@@ -131,9 +176,39 @@ namespace PicturesSoft
                 this.childsListView.Items.Add(lvi);
             }
 
-            this.groupsListView.Hide();
+            this.Refresh();
+            this.Invalidate();
+            this.childsListView.Refresh();
+            this.childsListView.Invalidate();
+        }
 
+        private void DeleteAllChildsBelongToGroup()
+        {
+            var childsListBelongToGroup = 
+                childRep.GetChildsBelongToGroup(((Group)globalSelectedItem).Id);
+
+            foreach (Child ch in childsListBelongToGroup)
+            {
+                var indexOfItemToDelete =
+                    childRep.GetChilds().IndexOf(ch);
+                this.childRep.DeleteChild(indexOfItemToDelete);
+            }
+        }
+
+        #endregion //Private helpers
+
+        #region groupListView Events
+
+        private void groupsListView_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            var indexOfSelectedItem = groupsListView.SelectedIndices[0];
+            groupOwner = groupRep.GetGroups()[indexOfSelectedItem];
+
+            this.childsListView.BeginUpdate();
+            this.ChildListViewRedraw();
+            this.groupsListView.Hide();
             this.childsListView.EndUpdate();
+
             this.childsListView.Show();
             this.BackToGroupsBtn.Show();
         }
@@ -181,9 +256,9 @@ namespace PicturesSoft
                 this.editSelectedBtn.Enabled = true;
                 this.deleteSelectedBtn.Enabled = true;
 
-                var indexOfSelectedItem = childsListView.SelectedIndices[0];
-                var selectedChild = childRep.GetChilds()[indexOfSelectedItem];
-                this.globalSelectedItem = selectedChild;
+                var indexOfSelectedItem = 
+                    childRep.GetChilds().IndexOf((Child)childsListView.SelectedItems[0].Tag);
+                this.globalSelectedItem = childRep.GetChilds()[indexOfSelectedItem];
             }
             else
             {
@@ -193,6 +268,8 @@ namespace PicturesSoft
         }
 
         #endregion //childsListView Events
+
+        #region Common buttons Events
 
         private void BackToGroupsBtn_Click(object sender, EventArgs e)
         {
@@ -212,8 +289,13 @@ namespace PicturesSoft
             }
             else if (this.childsListView.Visible)
             {
-                //childform
+                CreateAndEditChildForm CrAnEdChildForm =
+                    new CreateAndEditChildForm(workMode, groupOwner);
+                CrAnEdChildForm.ShowDialog(this);
             }
+
+            this.editSelectedBtn.Enabled = false;
+            this.deleteSelectedBtn.Enabled = false;
         }
 
         private void editSelectedBtn_Click(object sender, EventArgs e)
@@ -231,28 +313,130 @@ namespace PicturesSoft
             }
             else if(globalSlctedItemType.Name.Equals("Child"))
             {
-                //childform
+                Child childToEdit = (Child)globalSelectedItem;
+
+                CreateAndEditChildForm CrAnEdChildForm =
+                    new CreateAndEditChildForm(workMode, childToEdit);
+                CrAnEdChildForm.ShowDialog(this);
             }
-            
+
+            this.editSelectedBtn.Enabled = false;
+            this.deleteSelectedBtn.Enabled = false;
         }
 
         private void deleteSelectedBtn_Click(object sender, EventArgs e)
         {
             var globalSlctedItemType = globalSelectedItem.GetType();
-            WorkMode workMode = new WorkMode() { WorkType = WorkModeType.Edit };
 
             if (globalSlctedItemType.Name.Equals("Group"))
             {
-                //groupform
-                //do delete stuff here
+                Group groupToDelete = (Group)globalSelectedItem;
+
+                var result = MessageBox.Show("Are you sure that you want to delete "
+                    + groupToDelete.Name + "group?",
+                    "Delete", 
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if(result == DialogResult.Yes)
+                    this.DeleteGroup();
             }
             else if (globalSlctedItemType.Name.Equals("Child"))
             {
-                //childform
-                //do delete stuff here
+                Child childToDelete = (Child)globalSelectedItem;
+
+                var result = MessageBox.Show("Are you sure that you want to delete "
+                    + childToDelete.Name + "child?",
+                    "Delete",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (result == DialogResult.Yes)
+                    this.DeleteChild();
             }
+
+            this.editSelectedBtn.Enabled = false;
+            this.deleteSelectedBtn.Enabled = false;
 
         }
 
+        #endregion //Common buttons Events
+
+        private void createFinalXmlBtn_Click(object sender, EventArgs e)
+        {
+            XDocument xDoc = new XDocument();
+
+            //getting namespaces
+            XNamespace xmlns = XNamespace.Get("http://crystals.ru/cash/settings");
+            XNamespace xsi = XNamespace.Get("http://www.w3.org/2001/XMLSchema-instance");
+            XNamespace schemaLocation = XNamespace.Get("http://crystals.ru/cash/settings ../../module-config.xsd");
+
+            //create moduleConfigElement
+            XElement moduleConfigXElement = new XElement(xmlns + "moduleConfig");
+
+            //< create list of attributes for moduleConfigElement
+            List<XAttribute> moduleConfigAttrList = new List<XAttribute>()
+            {
+                new XAttribute(xsi + "schemaLocation", schemaLocation),
+                new XAttribute("settingsGroup", "weightCatalog"),
+                new XAttribute("visible", "true"),
+                new XAttribute("description", "Catalog"),
+                new XAttribute(XNamespace.Xmlns + "xsi", xsi)
+            };
+            //>
+
+            //adding attributes to moduleConfigElement
+            foreach(XAttribute XAttr in moduleConfigAttrList)
+            {
+                moduleConfigXElement.Add(XAttr);
+            }
+
+            //create property element
+            XElement propertyXElem = new XElement(xmlns + "property");
+            XAttribute keyAttr = new XAttribute("key", "catalog");
+            propertyXElem.Add(keyAttr);
+
+            foreach (Group gr in groupRep.GetGroups())
+            {
+                //create group element
+                XElement groupXElem = new XElement(xmlns + "group");
+
+                //create attributes for group element
+                XAttribute groupName = new XAttribute("name", gr.Name);
+                XAttribute groupImgName = new XAttribute("image-name", gr.ImgName);
+
+                //add attributes to group element
+                groupXElem.Add(groupName);
+                groupXElem.Add(groupImgName);
+
+                foreach(Child ch in childRep.GetChildsBelongToGroup(gr.Id))
+                {
+                    //create good element
+                    XElement goodXElem = new XElement(xmlns + "good");
+
+                    //create attributes for good element
+                    XAttribute goodId = new XAttribute("item", ch.Code);
+                    XAttribute goodSimpleName = new XAttribute("name", ch.SimpleName);
+
+                    //add attributes to good element
+                    goodXElem.Add(goodId);
+                    goodXElem.Add(goodSimpleName);
+
+                    //add each good to group
+                    groupXElem.Add(goodXElem);
+                }
+
+                //add each group element to property element
+                propertyXElem.Add(groupXElem);
+            }
+
+            //add property element to moduleConfigElement
+            moduleConfigXElement.Add(propertyXElem);
+
+            //making moduleConfigElement to be root element
+            xDoc.Add(moduleConfigXElement);
+
+            xDoc.Save("Data/FinalXml.xml");
+        }
     }
 }
