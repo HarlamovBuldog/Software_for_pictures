@@ -16,8 +16,21 @@ namespace PicturesSoft
         #region Fields
 
         readonly List<Child> _childs;
+        static string _childDataFile;
 
         #endregion // Fields
+
+        public static string ChildDataFile
+        {
+            get
+            {
+                return _childDataFile;
+            }
+            set
+            {
+                _childDataFile = value;
+            }
+        }
 
         #region Constructor
 
@@ -27,7 +40,8 @@ namespace PicturesSoft
         /// <param name="childDataFile">The relative path to an XML resource file that contains child data.</param>
         public ChildRepository(string childDataFile)
         {
-            _childs = LoadChilds(childDataFile);
+            ChildDataFile = childDataFile;
+            _childs = LoadChilds();
         }
 
         #endregion // Constructor
@@ -53,9 +67,33 @@ namespace PicturesSoft
             {
                 _childs.Add(child);
 
+                AddChildToXml(child);
+
                 // if (this.ChildAdded != null)
                 //    this.ChildAdded(this, new ChildAddedEventArgs(child));
             }
+        }
+
+        public void UpdateChild(Child childToUpdate, int childListIndex)
+        {
+            if (childToUpdate == null)
+                throw new ArgumentNullException("child");
+
+            //< Childs list update
+            _childs[childListIndex].Code = childToUpdate.Code;
+            _childs[childListIndex].Name = childToUpdate.Name;
+            _childs[childListIndex].SimpleName = childToUpdate.SimpleName;
+            _childs[childListIndex].GroupCode = childToUpdate.GroupCode;
+            _childs[childListIndex].ImgName = childToUpdate.ImgName;
+            //>
+
+            UpdateChildInXaml(childToUpdate, childListIndex);
+        }
+
+        public void DeleteChild(int childListIndex)
+        {
+            _childs.RemoveAt(childListIndex);
+            DeleteChildInXaml(childListIndex);
         }
 
         /// <summary>
@@ -95,10 +133,10 @@ namespace PicturesSoft
 
         #region Private Helpers
 
-        static List<Child> LoadChilds(string childDataFile)
+        static List<Child> LoadChilds()
         {
                 return
-                    (from childElem in XDocument.Load(childDataFile).Element("childs").Elements("child")
+                    (from childElem in XDocument.Load(ChildDataFile).Element("childs").Elements("child")
                      select Child.CreateChild(
                         (int)childElem.Attribute("code"),
                         (string)childElem.Attribute("name"),
@@ -108,15 +146,130 @@ namespace PicturesSoft
                          )).ToList();
         }
 
-        static Stream GetResourceStream(string resourceFile)
+        private void AddChildToXml(Child newChild)
         {
-            Uri uri = new Uri(resourceFile, UriKind.RelativeOrAbsolute);
-            Stream resource = Assembly.GetExecutingAssembly().GetManifestResourceStream(uri.ToString());
-            //StreamResourceInfo info = Application.GetResourceStream(uri);
-            if (resource == null || resource == null)
-                throw new ApplicationException("Missing resource file: " + resourceFile);
+            XmlDocument xDoc = new XmlDocument();
+            xDoc.Load(ChildDataFile);
+            XmlElement xRoot = xDoc.DocumentElement;
 
-            return resource;
+            //< create new element child
+            XmlElement childElement = xDoc.CreateElement("child");
+            //>
+
+            //< create attributes (elements) inside child
+            XmlAttribute codeAttr = xDoc.CreateAttribute("code");
+            XmlAttribute nameAttr = xDoc.CreateAttribute("name");
+            XmlAttribute simpleNameAttr = xDoc.CreateAttribute("simpleName");
+            XmlAttribute groupCodeAttr = xDoc.CreateAttribute("groupCode");
+            XmlAttribute imgNameAttr = xDoc.CreateAttribute("imgName");
+            //>
+
+            //< create text values for attributes
+            XmlText codeText = xDoc.CreateTextNode(newChild.Code.ToString());
+            XmlText nameText = xDoc.CreateTextNode(newChild.Name);
+            XmlText simpleNameText = xDoc.CreateTextNode(newChild.SimpleName);
+            XmlText groupCodeText = xDoc.CreateTextNode(newChild.GroupCode.ToString());
+            XmlText imgNameText = xDoc.CreateTextNode(newChild.ImgName);
+            //>
+
+            //< add nodes
+            codeAttr.AppendChild(codeText);
+            nameAttr.AppendChild(nameText);
+            simpleNameAttr.AppendChild(simpleNameText);
+            groupCodeAttr.AppendChild(groupCodeText);
+            imgNameAttr.AppendChild(imgNameText);
+            //>
+
+            childElement.Attributes.Append(codeAttr);
+            childElement.Attributes.Append(nameAttr);
+            childElement.Attributes.Append(simpleNameAttr);
+            childElement.Attributes.Append(groupCodeAttr);
+            childElement.Attributes.Append(imgNameAttr);
+
+            xRoot.AppendChild(childElement);
+            xDoc.Save(ChildDataFile);
+        }
+
+        private void UpdateChildInXaml(Child childToUpdate, int childLocationId)
+        {
+            #region Create new child
+            XmlDocument xDoc = new XmlDocument();
+            xDoc.Load(ChildDataFile);
+            XmlElement xRoot = xDoc.DocumentElement;
+
+            //< create new element child
+            XmlElement childElement = xDoc.CreateElement("child");
+            //>
+
+            //< create attributes (elements) inside child
+            XmlAttribute codeAttr = xDoc.CreateAttribute("code");
+            XmlAttribute nameAttr = xDoc.CreateAttribute("name");
+            XmlAttribute simpleNameAttr = xDoc.CreateAttribute("simpleName");
+            XmlAttribute groupCodeAttr = xDoc.CreateAttribute("groupCode");
+            XmlAttribute imgNameAttr = xDoc.CreateAttribute("imgName");
+            //>
+
+            //< create text values for attributes
+            XmlText codeText = xDoc.CreateTextNode(childToUpdate.Code.ToString());
+            XmlText nameText = xDoc.CreateTextNode(childToUpdate.Name);
+            XmlText simpleNameText = xDoc.CreateTextNode(childToUpdate.SimpleName);
+            XmlText groupCodeText = xDoc.CreateTextNode(childToUpdate.GroupCode.ToString());
+            XmlText imgNameText = xDoc.CreateTextNode(childToUpdate.ImgName);
+            //>
+
+            //< add nodes
+            codeAttr.AppendChild(codeText);
+            nameAttr.AppendChild(nameText);
+            simpleNameAttr.AppendChild(simpleNameText);
+            groupCodeAttr.AppendChild(groupCodeText);
+            imgNameAttr.AppendChild(imgNameText);
+            //>
+
+            childElement.Attributes.Append(codeAttr);
+            childElement.Attributes.Append(nameAttr);
+            childElement.Attributes.Append(simpleNameAttr);
+            childElement.Attributes.Append(groupCodeAttr);
+            childElement.Attributes.Append(imgNameAttr);
+            #endregion //Create new child
+
+            //actual update
+            int countId = 0;
+
+            foreach (XmlNode xnode in xRoot)
+            {
+                if (countId == childLocationId)
+                {
+                    xRoot.ReplaceChild(childElement, xnode);
+                    break;
+                }
+
+                countId++;
+            }
+
+            xDoc.Save(ChildDataFile);
+        }
+
+        private void DeleteChildInXaml(int childLocationId)
+        {
+            XmlDocument xDoc = new XmlDocument();
+            xDoc.Load(ChildDataFile);
+            XmlElement xRoot = xDoc.DocumentElement;
+
+            //actual remove
+            int countId = 0;
+
+            foreach (XmlNode xnode in xRoot)
+            {
+                if (countId == childLocationId)
+                {
+                    xRoot.RemoveChild(xnode);
+                    break;
+                }
+
+                countId++;
+            }
+
+            xDoc.Save(ChildDataFile);
         }
 
         #endregion // Private Helpers

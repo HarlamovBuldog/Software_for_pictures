@@ -74,6 +74,26 @@ namespace PicturesSoft
             }
         }
 
+        public void UpdateGroup(Group groupToUpdate, int groupListIndex)
+        {
+            if (groupToUpdate == null)
+                throw new ArgumentNullException("group");
+
+            //< Groups list update
+            _groups[groupListIndex].Id = groupToUpdate.Id;
+            _groups[groupListIndex].Name = groupToUpdate.Name;
+            _groups[groupListIndex].ImgName = groupToUpdate.ImgName;
+            //>
+
+            UpdateGroupInXaml(groupToUpdate, groupListIndex);
+        }
+
+        public void DeleteGroup(int groupListIndex)
+        {
+            _groups.RemoveAt(groupListIndex);
+            DeleteGroupInXaml(groupListIndex);
+        }
+
         /// <summary>
         /// Returns true if the specified group exists in the
         /// repository, or false if it is not.
@@ -115,23 +135,27 @@ namespace PicturesSoft
             xDoc.Load(GroupDataFile);
             XmlElement xRoot = xDoc.DocumentElement;
 
-            //create new element group
+            //< create new element group
             XmlElement groupElement = xDoc.CreateElement("group");
+            //>
 
-            //create attributes (elements) inside group
+            //< create attributes (elements) inside group
             XmlAttribute idAttr = xDoc.CreateAttribute("id");
             XmlAttribute nameAttr = xDoc.CreateAttribute("name");
             XmlAttribute imgNameAttr = xDoc.CreateAttribute("imgName");
+            //>
 
-            //create text values for attributes
+            //< create text values for attributes
             XmlText idText = xDoc.CreateTextNode(newGroup.Id.ToString());
             XmlText nameText = xDoc.CreateTextNode(newGroup.Name);
             XmlText imgNameText = xDoc.CreateTextNode(newGroup.ImgName);
+            //>
 
-            //add nodes
+            //< add nodes
             idAttr.AppendChild(idText);
             nameAttr.AppendChild(nameText);
             imgNameAttr.AppendChild(imgNameText);
+            //>
 
             groupElement.Attributes.Append(idAttr);
             groupElement.Attributes.Append(nameAttr);
@@ -141,16 +165,78 @@ namespace PicturesSoft
             xDoc.Save(GroupDataFile);
         }
 
-        static Stream GetResourceStream(string resourceFile)
+        private void UpdateGroupInXaml(Group groupToUpdate, int groupLocationId)
         {
-            //Uri uri = new Uri(resourceFile, UriKind.RelativeOrAbsolute);
-            //Stream resource = Assembly.GetExecutingAssembly().GetManifestResourceStream(uri.ToString());
-            //StreamResourceInfo info = Application.GetResourceStream(uri);
-            Stream resource = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceFile);
-            if (resource == null || resource == null)
-                throw new ApplicationException("Missing resource file: " + resourceFile);
+            #region Create new group
+            XmlDocument xDoc = new XmlDocument();
+            xDoc.Load(GroupDataFile);
+            XmlElement xRoot = xDoc.DocumentElement;
 
-            return resource;
+            //< create new element group
+            XmlElement groupElement = xDoc.CreateElement("group");
+            //>
+
+            //< create attributes (elements) inside group
+            XmlAttribute idAttr = xDoc.CreateAttribute("id");
+            XmlAttribute nameAttr = xDoc.CreateAttribute("name");
+            XmlAttribute imgNameAttr = xDoc.CreateAttribute("imgName");
+            //>
+
+            //< create text values for attributes
+            XmlText idText = xDoc.CreateTextNode(groupToUpdate.Id.ToString());
+            XmlText nameText = xDoc.CreateTextNode(groupToUpdate.Name);
+            XmlText imgNameText = xDoc.CreateTextNode(groupToUpdate.ImgName);
+            //>
+
+            //< add nodes
+            idAttr.AppendChild(idText);
+            nameAttr.AppendChild(nameText);
+            imgNameAttr.AppendChild(imgNameText);
+            //>
+
+            groupElement.Attributes.Append(idAttr);
+            groupElement.Attributes.Append(nameAttr);
+            groupElement.Attributes.Append(imgNameAttr);
+            #endregion //Create new group
+
+            //actual update
+            int countId = 0;
+
+            foreach (XmlNode xnode in xRoot)
+            {
+                if(countId == groupLocationId)
+                {
+                    xRoot.ReplaceChild(groupElement, xnode);
+                    break;
+                }
+
+                countId++;
+            }
+
+            xDoc.Save(GroupDataFile);
+        }
+
+        private void DeleteGroupInXaml(int groupLocationId)
+        {
+            XmlDocument xDoc = new XmlDocument();
+            xDoc.Load(GroupDataFile);
+            XmlElement xRoot = xDoc.DocumentElement;
+
+            //actual remove
+            int countId = 0;
+
+            foreach (XmlNode xnode in xRoot)
+            {
+                if (countId == groupLocationId)
+                {
+                    xRoot.RemoveChild(xnode);
+                    break;
+                }
+
+                countId++;
+            }
+
+            xDoc.Save(GroupDataFile);
         }
 
         #endregion // Private Helpers
