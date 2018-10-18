@@ -21,21 +21,31 @@ namespace PicturesSoft
 
         #endregion //private fields
 
+        public string xmlCnfgFilePath { get; set; }
+        public string destImgFolderPath { get; set; }
+        public WorkMode AppWorkMode { get; set; }
+
         #region Form1 creation
 
         public Form1()
         {
             InitializeComponent();
 
+            //Dialog for setting pathes
+            AppSettings appSettingsDialog = new AppSettings();
+            appSettingsDialog.ShowDialog(this);
+
             //Groups.xml file path
-           // string groupXmlFilePath = Path.Combine(Path.GetDirectoryName(
+            //string groupXmlFilePath = Path.Combine(Path.GetDirectoryName(
             //        Assembly.GetExecutingAssembly().Location), @"Data\Groups.xml");
 
             //Childs.xml file path
-           // string childXmlFilePath = Path.Combine(Path.GetDirectoryName(
-           //         Assembly.GetExecutingAssembly().Location), @"Data\Childs.xml");
+            //string childXmlFilePath = Path.Combine(Path.GetDirectoryName(
+            //         Assembly.GetExecutingAssembly().Location), @"Data\Childs.xml");
 
-            groupRep = new GroupRepository("Data/Groups.xml");
+            AppWorkMode = new WorkMode() { WorkType = WorkModeType.LoadFromFinalXml };
+
+            groupRep = new GroupRepository(xmlCnfgFilePath, AppWorkMode);
             childRep = new ChildRepository("Data/Childs.xml");
 
             //filling listbox
@@ -132,6 +142,83 @@ namespace PicturesSoft
 
             childRep.DeleteChild(childListIndex);
             ChildListViewRedraw();
+        }
+
+        public void CreateFinalXmlFile()
+        {
+            XDocument xDoc = new XDocument();
+
+            //getting namespaces
+            XNamespace xmlns = XNamespace.Get("http://crystals.ru/cash/settings");
+            XNamespace xsi = XNamespace.Get("http://www.w3.org/2001/XMLSchema-instance");
+            XNamespace schemaLocation = XNamespace.Get("http://crystals.ru/cash/settings ../../module-config.xsd");
+
+            //create moduleConfigElement
+            XElement moduleConfigXElement = new XElement(xmlns + "moduleConfig");
+
+            //< create list of attributes for moduleConfigElement
+            List<XAttribute> moduleConfigAttrList = new List<XAttribute>()
+            {
+                new XAttribute(xsi + "schemaLocation", schemaLocation),
+                new XAttribute("settingsGroup", "weightCatalog"),
+                new XAttribute("visible", "true"),
+                new XAttribute("description", "Catalog"),
+                new XAttribute(XNamespace.Xmlns + "xsi", xsi)
+            };
+            //>
+
+            //adding attributes to moduleConfigElement
+            foreach (XAttribute XAttr in moduleConfigAttrList)
+            {
+                moduleConfigXElement.Add(XAttr);
+            }
+
+            //create property element
+            XElement propertyXElem = new XElement(xmlns + "property");
+            XAttribute keyAttr = new XAttribute("key", "catalog");
+            propertyXElem.Add(keyAttr);
+
+            foreach (Group gr in groupRep.GetGroups())
+            {
+                //create group element
+                XElement groupXElem = new XElement(xmlns + "group");
+
+                //create attributes for group element
+                XAttribute groupName = new XAttribute("name", gr.Name);
+                XAttribute groupImgName = new XAttribute("image-name", gr.ImgName);
+
+                //add attributes to group element
+                groupXElem.Add(groupName);
+                groupXElem.Add(groupImgName);
+
+                foreach (Child ch in childRep.GetChildsBelongToGroup(gr.Id))
+                {
+                    //create good element
+                    XElement goodXElem = new XElement(xmlns + "good");
+
+                    //create attributes for good element
+                    XAttribute goodId = new XAttribute("item", ch.Code);
+                    XAttribute goodSimpleName = new XAttribute("name", ch.SimpleName);
+
+                    //add attributes to good element
+                    goodXElem.Add(goodId);
+                    goodXElem.Add(goodSimpleName);
+
+                    //add each good to group
+                    groupXElem.Add(goodXElem);
+                }
+
+                //add each group element to property element
+                propertyXElem.Add(groupXElem);
+            }
+
+            //add property element to moduleConfigElement
+            moduleConfigXElement.Add(propertyXElem);
+
+            //making moduleConfigElement to be root element
+            xDoc.Add(moduleConfigXElement);
+
+            xDoc.Save("Data/FinalXml.xml");
         }
         //>
 
@@ -364,79 +451,7 @@ namespace PicturesSoft
 
         private void createFinalXmlBtn_Click(object sender, EventArgs e)
         {
-            XDocument xDoc = new XDocument();
-
-            //getting namespaces
-            XNamespace xmlns = XNamespace.Get("http://crystals.ru/cash/settings");
-            XNamespace xsi = XNamespace.Get("http://www.w3.org/2001/XMLSchema-instance");
-            XNamespace schemaLocation = XNamespace.Get("http://crystals.ru/cash/settings ../../module-config.xsd");
-
-            //create moduleConfigElement
-            XElement moduleConfigXElement = new XElement(xmlns + "moduleConfig");
-
-            //< create list of attributes for moduleConfigElement
-            List<XAttribute> moduleConfigAttrList = new List<XAttribute>()
-            {
-                new XAttribute(xsi + "schemaLocation", schemaLocation),
-                new XAttribute("settingsGroup", "weightCatalog"),
-                new XAttribute("visible", "true"),
-                new XAttribute("description", "Catalog"),
-                new XAttribute(XNamespace.Xmlns + "xsi", xsi)
-            };
-            //>
-
-            //adding attributes to moduleConfigElement
-            foreach(XAttribute XAttr in moduleConfigAttrList)
-            {
-                moduleConfigXElement.Add(XAttr);
-            }
-
-            //create property element
-            XElement propertyXElem = new XElement(xmlns + "property");
-            XAttribute keyAttr = new XAttribute("key", "catalog");
-            propertyXElem.Add(keyAttr);
-
-            foreach (Group gr in groupRep.GetGroups())
-            {
-                //create group element
-                XElement groupXElem = new XElement(xmlns + "group");
-
-                //create attributes for group element
-                XAttribute groupName = new XAttribute("name", gr.Name);
-                XAttribute groupImgName = new XAttribute("image-name", gr.ImgName);
-
-                //add attributes to group element
-                groupXElem.Add(groupName);
-                groupXElem.Add(groupImgName);
-
-                foreach(Child ch in childRep.GetChildsBelongToGroup(gr.Id))
-                {
-                    //create good element
-                    XElement goodXElem = new XElement(xmlns + "good");
-
-                    //create attributes for good element
-                    XAttribute goodId = new XAttribute("item", ch.Code);
-                    XAttribute goodSimpleName = new XAttribute("name", ch.SimpleName);
-
-                    //add attributes to good element
-                    goodXElem.Add(goodId);
-                    goodXElem.Add(goodSimpleName);
-
-                    //add each good to group
-                    groupXElem.Add(goodXElem);
-                }
-
-                //add each group element to property element
-                propertyXElem.Add(groupXElem);
-            }
-
-            //add property element to moduleConfigElement
-            moduleConfigXElement.Add(propertyXElem);
-
-            //making moduleConfigElement to be root element
-            xDoc.Add(moduleConfigXElement);
-
-            xDoc.Save("Data/FinalXml.xml");
+            CreateFinalXmlFile();
         }
     }
 }
