@@ -32,6 +32,12 @@ namespace PicturesSoft
             }
         }
 
+        public WorkMode WorkMode { get; set; }
+
+        public static int GlobalGroupCode { get; private set; }
+
+        public static XNamespace Xmlns { get; set; }
+
         #region Constructor
 
         /// <summary>
@@ -42,6 +48,22 @@ namespace PicturesSoft
         {
             ChildDataFile = childDataFile;
             _childs = LoadChilds();
+        }
+
+        public ChildRepository(string childDataFile, WorkMode workMode)
+        {
+            WorkMode = workMode;
+            ChildDataFile = childDataFile;
+
+            if (WorkMode.WorkType == WorkModeType.LoadFromFinalXml)
+            {
+                Xmlns = XNamespace.Get("http://crystals.ru/cash/settings");
+                _childs = LoadChildsFromFinalXml();
+            }
+            else
+            {
+                _childs = LoadChilds();
+            }
         }
 
         #endregion // Constructor
@@ -67,7 +89,14 @@ namespace PicturesSoft
             {
                 _childs.Add(child);
 
-                AddChildToXml(child);
+                if (WorkMode.WorkType == WorkModeType.LoadFromFinalXml)
+                {
+                    AddChildToFinaXml(child);
+                }
+                else
+                {
+                    AddChildToXml(child);
+                }
 
                 // if (this.ChildAdded != null)
                 //    this.ChildAdded(this, new ChildAddedEventArgs(child));
@@ -87,13 +116,28 @@ namespace PicturesSoft
             _childs[childListIndex].ImgName = childToUpdate.ImgName;
             //>
 
-            UpdateChildInXaml(childToUpdate, childListIndex);
+            if (WorkMode.WorkType == WorkModeType.LoadFromFinalXml)
+            {
+                UpgradeChildInFinalXml(childToUpdate, childListIndex);
+            }
+            else
+            {
+                UpdateChildInXaml(childToUpdate, childListIndex);
+            }
         }
 
         public void DeleteChild(int childListIndex)
         {
             _childs.RemoveAt(childListIndex);
-            DeleteChildInXaml(childListIndex);
+
+            if (WorkMode.WorkType == WorkModeType.LoadFromFinalXml)
+            {
+                DeleteChildInFinalXaml(childListIndex);
+            }
+            else
+            {
+                DeleteChildInXaml(childListIndex);
+            }
         }
 
         /// <summary>
@@ -132,6 +176,61 @@ namespace PicturesSoft
         #endregion // Public Interface
 
         #region Private Helpers
+
+        //< Final Xml methods
+
+        private static List<Child> LoadChildsFromFinalXml()
+        {
+            List<Child> loadedChilds = new List<Child>();
+            int counterForGroupCode = 1;
+
+            XDocument xDoc = XDocument.Load(ChildDataFile);
+
+            foreach (XElement groupElem in xDoc.Element(Xmlns + "moduleConfig").
+                Element(Xmlns + "property").Elements(Xmlns + "group"))
+            {
+                foreach(XElement childElem in groupElem.Elements(Xmlns + "good"))
+                {
+                    loadedChilds.Add(Child.CreateChild(
+                    (int)childElem.Attribute("item"),
+                    (string)childElem.Attribute("name"),
+                    (string)childElem.Attribute("name"),
+                    counterForGroupCode,
+                    "undef"
+                    ));
+                }
+
+                counterForGroupCode++;
+            }
+
+            GlobalGroupCode = counterForGroupCode;
+
+            return loadedChilds;
+        }
+
+        private void AddChildToFinaXml(Child newChild)
+        {
+            XDocument xDoc = XDocument.Load(ChildDataFile);
+            IEnumerable<XElement> groupElemCollection = xDoc.Element(Xmlns + "moduleConfig").
+                Element(Xmlns + "property").Elements(Xmlns + "group");
+
+            foreach (XElement groupElem in groupElemCollection)
+            {
+                if(groupElem.Attribute("id").Value == newChild.GroupCode.ToString())
+                {
+                    groupElem.Add(new XElement(Xmlns + "child",
+                    new XAttribute("name", newChild.Name),
+                    new XAttribute("image-name", newChild.ImgName)
+                    ));
+                    break;
+                }
+                
+            }
+
+            xDoc.Save(ChildDataFile);
+        }
+
+        //>
 
         static List<Child> LoadChilds()
         {
