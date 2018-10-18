@@ -60,19 +60,7 @@ namespace PicturesSoft
             {
                 //System folder path of selected item (full source file name)
                 string sourceFileName = openFileDialog.FileName;
-
-                //File name for saving in .xml file
-                string fileName = sourceFileName.Substring(sourceFileName.LastIndexOf("\\") + 1);
-                this.groupImgPathTextBox.Text = fileName;
-
-                //Full destination path for file (Full file name)
-                string destFolderName = Path.Combine(Path.GetDirectoryName(
-                    Assembly.GetExecutingAssembly().Location), @"Images\") + fileName;
-
-                using (fileStream)
-                {
-                    File.Copy(sourceFileName, destFolderName, true);
-                }
+                this.groupImgPathTextBox.Text = sourceFileName;
             }
         }
 
@@ -83,11 +71,44 @@ namespace PicturesSoft
 
         private void CreateAndEditGrSaveBtn_Click(object sender, EventArgs e)
         {
+            //coping image file to /Image folder and renaming it on fly
+
+            //System folder path of selected item (full source file name)
+            string sourceFileName = this.groupImgPathTextBox.Text;
+            //Get image extension
+            string imgExtension = sourceFileName.Substring(sourceFileName.LastIndexOf('.'));
+
+            
+            if (File.Exists(sourceFileName))
+            {
+                //Full destination path for file (full destination file name)
+                string destFolderName;
+
+                if (((Form1)this.Owner).AppWorkMode.WorkType == WorkModeType.LoadFromFinalXml)
+                {
+                    destFolderName = ((Form1)this.Owner).destImgFolderPath +
+                        "\\" + this.groupIdTextBox.Text + 
+                        imgExtension;
+                    File.Copy(sourceFileName, destFolderName, true);
+                }
+                else
+                {
+                    destFolderName = Path.Combine(Path.GetDirectoryName(
+                        Assembly.GetExecutingAssembly().Location), @"Images\") +
+                        this.groupIdTextBox.Text +
+                        imgExtension;
+                    File.Copy(sourceFileName, destFolderName, true);
+                }
+            }
+
+            // File name for saving in .xml file
+            string fileName = this.groupIdTextBox.Text + imgExtension;
+
             //need validation here
             //< getting values from textboxes
             GroupToEditOrCreate.Id = Int32.Parse(this.groupIdTextBox.Text);
             GroupToEditOrCreate.Name = this.groupNameTextBox.Text;
-            GroupToEditOrCreate.ImgName = this.groupImgPathTextBox.Text;
+            GroupToEditOrCreate.ImgName = fileName;
             //>
 
             if (WorkMode.WorkType.Equals(WorkModeType.Create))
@@ -104,6 +125,9 @@ namespace PicturesSoft
                     ((Form1)this.Owner).UpdateGroup(GroupToEditOrCreate);
                 }
             }
+
+            //remaking final xml file
+            //((Form1)this.Owner).CreateFinalXmlFile();
 
             this.Close();
         }
