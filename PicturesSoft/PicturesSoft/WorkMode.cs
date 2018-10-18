@@ -14,6 +14,7 @@ namespace PicturesSoft
     public enum WorkModeType
     {
         Create,
-        Edit
+        Edit,
+        LoadFromFinalXml
     }
 }
