@@ -13,9 +13,14 @@ namespace PicturesSoft
         static void Main()
         {
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
+
             // Subscribe to thread (unhandled) exception events
             ThreadExceptionHandler handler =
                 new ThreadExceptionHandler();
+
+            // Add handler to handle the exception raised by additional threads
+            AppDomain.CurrentDomain.UnhandledException +=
+            new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
             Application.ThreadException +=
                 new ThreadExceptionEventHandler(
@@ -25,27 +30,23 @@ namespace PicturesSoft
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());
         }
-        /*
-        //all the exception will be catched and handled in this delegated method.
-        private static void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)
-        {
-            //log you error
-            string path = @"D:\Work\ErrorLog.txt";
-            if (!File.Exists(path))
-            {
-                File.Create(path);
-                using(var tw = new StreamWriter(path, true))
-                    tw.WriteLine(e.Exception.Message);
-            }
-            else if (File.Exists(path))
-            {
-                using (var tw = new StreamWriter(path, true))
-                    tw.WriteLine(e.Exception.Message);
-            }
 
-            Console.WriteLine(e.Exception.Message);
+        static void CurrentDomain_UnhandledException
+        (object sender, UnhandledExceptionEventArgs e)
+        {// All exceptions thrown by additional threads are handled in this method
+
+            ShowExceptionDetails(e.ExceptionObject as Exception);
+
+            // Suspend the current thread for now to stop the exception from throwing.
+            //Thread.CurrentThread.Suspend();
         }
-        */
+
+        static void ShowExceptionDetails(Exception Ex)
+        {
+            // Do logging of exception details
+            MessageBox.Show(Ex.Message, Ex.TargetSite.ToString(),
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
     }
 
     /// 
