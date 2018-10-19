@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
-using System.Xml;
 using System.Xml.Linq;
 
 namespace PicturesSoft
@@ -21,8 +20,8 @@ namespace PicturesSoft
 
         #endregion //private fields
 
-        public string xmlCnfgFilePath { get; set; }
-        public string destImgFolderPath { get; set; }
+        public string XmlCnfgFilePath { get; set; }
+        public string DestImgFolderPath { get; set; }
         public WorkMode AppWorkMode { get; set; }
 
         #region Form1 creation
@@ -33,7 +32,10 @@ namespace PicturesSoft
 
             //Dialog for setting pathes
             AppSettings appSettingsDialog = new AppSettings();
-            appSettingsDialog.ShowDialog(this);
+            var result = appSettingsDialog.ShowDialog(this);
+
+            //if (result == DialogResult.Cancel)
+             //   this.Close();
 
             //Groups.xml file path
             //string groupXmlFilePath = Path.Combine(Path.GetDirectoryName(
@@ -43,15 +45,27 @@ namespace PicturesSoft
             //string childXmlFilePath = Path.Combine(Path.GetDirectoryName(
             //         Assembly.GetExecutingAssembly().Location), @"Data\Childs.xml");
 
+            //XmlCnfgFilePath = "D:\\Download\\crystal-cash\\config\\plugins\\weightCatalog-xml-config.xml";
+            //DestImgFolderPath = "D:\\Download\\crystal-cash\\images";
+
             AppWorkMode = new WorkMode() { WorkType = WorkModeType.LoadFromFinalXml };
 
-            groupRep = new GroupRepository(xmlCnfgFilePath, AppWorkMode);
-            childRep = new ChildRepository("Data/Childs.xml");
+            if (this.AppWorkMode.WorkType == WorkModeType.LoadFromFinalXml)
+            {
+                groupRep = new GroupRepository(XmlCnfgFilePath, AppWorkMode);
+                childRep = new ChildRepository(XmlCnfgFilePath, AppWorkMode);
+                createFinalXmlBtn.Enabled = false;
+            }
+            else
+            {
+                groupRep = new GroupRepository("Data/Groups.xml");
+                childRep = new ChildRepository("Data/Childs.xml");
+            }
 
             //filling listbox
             this.listBox1.Items.AddRange(groupRep.GetGroups().ToArray<Group>());
-            
-            foreach(Group gr in groupRep.GetGroups())
+
+            foreach (Group gr in groupRep.GetGroups())
             {
                 //< filling table layout panel
                 this.tableLayoutPanel1.Controls.Add(
@@ -72,15 +86,9 @@ namespace PicturesSoft
                         
                     });
                 //>
-
-                //< filling groupListView
-                ListViewItem lvi = new ListViewItem();
-                lvi.Text = gr.Name;
-                lvi.Tag = gr;
-
-                this.groupsListView.Items.Add(lvi);
-                //>
             }
+
+            GroupListViewRedraw();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -102,21 +110,40 @@ namespace PicturesSoft
 
         public void UpdateGroup(Group groupToUpdate)
         {
-            var groupListIndex = groupRep.GetGroups().IndexOf((Group)globalSelectedItem);
+            //var groupListIndex = groupRep.GetGroups().IndexOf((Group)globalSelectedItem);
 
-            groupRep.UpdateGroup(groupToUpdate, groupListIndex);
-            GroupListViewRedraw();
+            Group oldGroup = (Group)globalSelectedItem;
+
+            /*
+            Group oldGroup = Group.CreateGroup(
+                castGroup.Id,
+                castGroup.Name,
+                castGroup.ImgName
+                );
+                */
+            //need to also update all childs connected to the group
+            //if property Id has changed
+            if (groupToUpdate.Id != oldGroup.Id)
+            {
+                this.UpdateAllChildsBelongToGroup(groupToUpdate, oldGroup);
+            }
+
+            //groupRep.UpdateGroup(groupToUpdate, groupListIndex);
+            groupRep.UpdateGroup(groupToUpdate, oldGroup);   
+            GroupListViewRedraw();   
         }
 
-        public void DeleteGroup()
+        public void DeleteGroup(Group groupToDelete)
         {
-            var groupListIndex = groupRep.GetGroups().IndexOf((Group)globalSelectedItem);
+            //var groupListIndex = groupRep.GetGroups().IndexOf((Group)globalSelectedItem);
 
-            groupRep.DeleteGroup(groupListIndex);
+            //groupRep.DeleteGroup(groupListIndex);
+            groupRep.DeleteGroup(groupToDelete);
             GroupListViewRedraw();
 
             //need to also delete all childs connected to the group
             this.DeleteAllChildsBelongToGroup();
+            
         }
         //>
 
@@ -130,17 +157,28 @@ namespace PicturesSoft
 
         public void UpdateChild(Child childToUpdate)
         {
-            var childListIndex = childRep.GetChilds().IndexOf((Child)globalSelectedItem);
+            //var childListIndex = childRep.GetChilds().IndexOf((Child)globalSelectedItem);
+            Child oldChild = (Child)globalSelectedItem;
 
-            childRep.UpdateChild(childToUpdate, childListIndex);
+            //childRep.UpdateChild(childToUpdate, childListIndex);
+            childRep.UpdateChild(childToUpdate, oldChild);
+
+            /*
+            if(childToUpdate.Code != oldChild.Code)
+            {
+                File.Move(DestImgFolderPath + oldChild.Code + ".png",
+                    DestImgFolderPath + childToUpdate.Code + ".png");
+            }
+            */
             ChildListViewRedraw();
         }
 
-        public void DeleteChild()
+        public void DeleteChild(Child childToDelete)
         {
-            var childListIndex = childRep.GetChilds().IndexOf((Child)globalSelectedItem);
+            //var childListIndex = childRep.GetChilds().IndexOf((Child)globalSelectedItem);
 
-            childRep.DeleteChild(childListIndex);
+            //childRep.DeleteChild(childListIndex);
+            childRep.DeleteChild(childToDelete);
             ChildListViewRedraw();
         }
 
@@ -228,16 +266,46 @@ namespace PicturesSoft
 
         private void GroupListViewRedraw()
         {
-            this.groupsListView.Clear();
+            if (this.groupsListView.Items.Count != 0)
+            {
+                this.groupsListView.Clear();
+            }
+
+            //Image collection for listview
+            ImageList imageGroupListViewCollection = new ImageList();
+            imageGroupListViewCollection.ImageSize = new Size(64, 64);
+            imageGroupListViewCollection.ColorDepth = ColorDepth.Depth32Bit;
+
+            String[] imageFiles = Directory.GetFiles(DestImgFolderPath);
+
+            int imgIndexCounter = 0;
 
             foreach (Group gr in groupRep.GetGroups())
             {
+                //< filling image collection for groupListView
+                foreach (var imgFile in imageFiles)
+                {
+                    if (imgFile.Substring(imgFile.LastIndexOf("\\") + 1)
+                        .Equals(gr.ImgName))
+                    {
+                        imageGroupListViewCollection.Images.Add(Image.FromFile(imgFile));
+                    }
+                }
+                //>
+
+                //< filling groupListView
                 ListViewItem lvi = new ListViewItem();
                 lvi.Text = gr.Name;
                 lvi.Tag = gr;
+                lvi.ImageIndex = imgIndexCounter;
 
                 this.groupsListView.Items.Add(lvi);
+
+                imgIndexCounter++;
+                //>
             }
+
+            this.groupsListView.LargeImageList = imageGroupListViewCollection;
 
             this.Refresh();
             this.Invalidate();
@@ -254,14 +322,41 @@ namespace PicturesSoft
                 childsListView.Items.Clear();
             }
 
+            //Image collection for listview
+            ImageList imageChildListViewCollection = new ImageList();
+            imageChildListViewCollection.ImageSize = new Size(64, 64);
+            imageChildListViewCollection.ColorDepth = ColorDepth.Depth32Bit;
+
+            String[] imageFiles = Directory.GetFiles(DestImgFolderPath);
+
+            int imgIndexCounter = 0;
+
             foreach (Child ch in childsListBelongToGroup)
             {
+                //< filling image collection for childListView
+                foreach (var imgFile in imageFiles)
+                {
+                    if (imgFile.Substring(imgFile.LastIndexOf("\\") + 1)
+                        .Equals(ch.ImgName))
+                    {
+                        imageChildListViewCollection.Images.Add(Image.FromFile(imgFile));
+                    }
+                }
+                //>
+
+                //< filling childListView
                 ListViewItem lvi = new ListViewItem();
-                lvi.Text = ch.Name;
+                lvi.Text = ch.SimpleName;
                 lvi.Tag = ch;
+                lvi.ImageIndex = imgIndexCounter;
 
                 this.childsListView.Items.Add(lvi);
+
+                imgIndexCounter++;
+                //>
             }
+
+            this.childsListView.LargeImageList = imageChildListViewCollection;
 
             this.Refresh();
             this.Invalidate();
@@ -278,7 +373,25 @@ namespace PicturesSoft
             {
                 var indexOfItemToDelete =
                     childRep.GetChilds().IndexOf(ch);
-                this.childRep.DeleteChild(indexOfItemToDelete);
+                this.childRep.DeleteChild(ch, false);
+            }
+        }
+
+        private void UpdateAllChildsBelongToGroup(Group groupToUpdate, Group oldGroup)
+        {
+            var childsListBelongToOldGroup =
+                childRep.GetChildsBelongToGroup(oldGroup.Id);
+
+            foreach (Child oldCh in childsListBelongToOldGroup)
+            {
+                Child newCh = Child.CreateChild(
+                    oldCh.Code,
+                    oldCh.Name,
+                    oldCh.SimpleName,
+                    groupToUpdate.Id,
+                    oldCh.ImgName
+                    );
+                this.childRep.UpdateChild(newCh, oldCh, false);
             }
         }
 
@@ -392,7 +505,12 @@ namespace PicturesSoft
 
             if (globalSlctedItemType.Name.Equals("Group"))
             {
-                Group groupToEdit = (Group)globalSelectedItem;
+                Group oldGroup = (Group)globalSelectedItem;
+                Group groupToEdit = Group.CreateGroup(
+                    oldGroup.Id,
+                    oldGroup.Name,
+                    oldGroup.ImgName
+                    );  
 
                 CreateAndEditGroupForm CrAnEdGrForm = 
                     new CreateAndEditGroupForm(workMode, groupToEdit);
@@ -400,7 +518,14 @@ namespace PicturesSoft
             }
             else if(globalSlctedItemType.Name.Equals("Child"))
             {
-                Child childToEdit = (Child)globalSelectedItem;
+                Child oldChild = (Child)globalSelectedItem;
+                Child childToEdit = Child.CreateChild(
+                    oldChild.Code,
+                    oldChild.Name,
+                    oldChild.SimpleName,
+                    oldChild.GroupCode,
+                    oldChild.ImgName
+                    );
 
                 CreateAndEditChildForm CrAnEdChildForm =
                     new CreateAndEditChildForm(workMode, childToEdit);
@@ -426,7 +551,7 @@ namespace PicturesSoft
                     MessageBoxIcon.Question);
 
                 if(result == DialogResult.Yes)
-                    this.DeleteGroup();
+                    this.DeleteGroup(groupToDelete);
             }
             else if (globalSlctedItemType.Name.Equals("Child"))
             {
@@ -439,7 +564,7 @@ namespace PicturesSoft
                     MessageBoxIcon.Question);
 
                 if (result == DialogResult.Yes)
-                    this.DeleteChild();
+                    this.DeleteChild(childToDelete);
             }
 
             this.editSelectedBtn.Enabled = false;

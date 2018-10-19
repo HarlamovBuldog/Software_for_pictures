@@ -62,7 +62,7 @@
             // 
             // BackToGroupsBtn
             // 
-            this.BackToGroupsBtn.Location = new System.Drawing.Point(329, 320);
+            this.BackToGroupsBtn.Location = new System.Drawing.Point(342, 341);
             this.BackToGroupsBtn.Name = "BackToGroupsBtn";
             this.BackToGroupsBtn.Size = new System.Drawing.Size(75, 23);
             this.BackToGroupsBtn.TabIndex = 2;
@@ -73,10 +73,10 @@
             // groupsListView
             // 
             this.groupsListView.HideSelection = false;
-            this.groupsListView.Location = new System.Drawing.Point(329, 187);
+            this.groupsListView.Location = new System.Drawing.Point(342, 117);
             this.groupsListView.MultiSelect = false;
             this.groupsListView.Name = "groupsListView";
-            this.groupsListView.Size = new System.Drawing.Size(236, 127);
+            this.groupsListView.Size = new System.Drawing.Size(339, 218);
             this.groupsListView.TabIndex = 3;
             this.groupsListView.UseCompatibleStateImageBehavior = false;
             this.groupsListView.ItemSelectionChanged += new System.Windows.Forms.ListViewItemSelectionChangedEventHandler(this.groupsListView_ItemSelectionChanged);
@@ -86,10 +86,10 @@
             // childsListView
             // 
             this.childsListView.HideSelection = false;
-            this.childsListView.Location = new System.Drawing.Point(329, 187);
+            this.childsListView.Location = new System.Drawing.Point(342, 117);
             this.childsListView.MultiSelect = false;
             this.childsListView.Name = "childsListView";
-            this.childsListView.Size = new System.Drawing.Size(236, 127);
+            this.childsListView.Size = new System.Drawing.Size(339, 218);
             this.childsListView.TabIndex = 4;
             this.childsListView.UseCompatibleStateImageBehavior = false;
             this.childsListView.ItemSelectionChanged += new System.Windows.Forms.ListViewItemSelectionChangedEventHandler(this.childsListView_ItemSelectionChanged);
@@ -97,7 +97,7 @@
             // 
             // createNewItemBtn
             // 
-            this.createNewItemBtn.Location = new System.Drawing.Point(571, 187);
+            this.createNewItemBtn.Location = new System.Drawing.Point(687, 123);
             this.createNewItemBtn.Name = "createNewItemBtn";
             this.createNewItemBtn.Size = new System.Drawing.Size(75, 23);
             this.createNewItemBtn.TabIndex = 5;
@@ -107,7 +107,7 @@
             // 
             // editSelectedBtn
             // 
-            this.editSelectedBtn.Location = new System.Drawing.Point(571, 216);
+            this.editSelectedBtn.Location = new System.Drawing.Point(687, 152);
             this.editSelectedBtn.Name = "editSelectedBtn";
             this.editSelectedBtn.Size = new System.Drawing.Size(75, 23);
             this.editSelectedBtn.TabIndex = 6;
@@ -117,7 +117,7 @@
             // 
             // deleteSelectedBtn
             // 
-            this.deleteSelectedBtn.Location = new System.Drawing.Point(571, 245);
+            this.deleteSelectedBtn.Location = new System.Drawing.Point(687, 181);
             this.deleteSelectedBtn.Name = "deleteSelectedBtn";
             this.deleteSelectedBtn.Size = new System.Drawing.Size(75, 23);
             this.deleteSelectedBtn.TabIndex = 7;
@@ -127,7 +127,7 @@
             // 
             // createFinalXmlBtn
             // 
-            this.createFinalXmlBtn.Location = new System.Drawing.Point(432, 79);
+            this.createFinalXmlBtn.Location = new System.Drawing.Point(12, 242);
             this.createFinalXmlBtn.Name = "createFinalXmlBtn";
             this.createFinalXmlBtn.Size = new System.Drawing.Size(75, 23);
             this.createFinalXmlBtn.TabIndex = 8;
