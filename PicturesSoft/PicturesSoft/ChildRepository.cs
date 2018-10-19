@@ -34,7 +34,7 @@ namespace PicturesSoft
 
         public WorkMode WorkMode { get; set; }
 
-        public static int GlobalGroupCode { get; private set; }
+        //public static int GlobalGroupCode { get; private set; }
 
         public static XNamespace Xmlns { get; set; }
 
@@ -103,41 +103,59 @@ namespace PicturesSoft
             }
         }
 
-        public void UpdateChild(Child childToUpdate, int childListIndex)
+        public void UpdateChild(Child childToUpdate, Child oldChild, bool needToUpdateInFinalXml = true)
         {
             if (childToUpdate == null)
                 throw new ArgumentNullException("child");
 
+            int oldChildListIndex = _childs.IndexOf(oldChild);
+
+
+            if (WorkMode.WorkType == WorkModeType.LoadFromFinalXml
+                 && needToUpdateInFinalXml)
+            {
+                UpgradeChildInFinalXml(childToUpdate, oldChild);
+            }
+            else if (WorkMode.WorkType != WorkModeType.LoadFromFinalXml)
+            {
+                UpdateChildInXaml(childToUpdate, oldChildListIndex);
+            }
+
             //< Childs list update
-            _childs[childListIndex].Code = childToUpdate.Code;
-            _childs[childListIndex].Name = childToUpdate.Name;
-            _childs[childListIndex].SimpleName = childToUpdate.SimpleName;
-            _childs[childListIndex].GroupCode = childToUpdate.GroupCode;
-            _childs[childListIndex].ImgName = childToUpdate.ImgName;
+            _childs[oldChildListIndex].Code = childToUpdate.Code;
+            _childs[oldChildListIndex].Name = childToUpdate.Name;
+            _childs[oldChildListIndex].SimpleName = childToUpdate.SimpleName;
+            _childs[oldChildListIndex].GroupCode = childToUpdate.GroupCode;
+            _childs[oldChildListIndex].ImgName = childToUpdate.ImgName;
             //>
 
-            if (WorkMode.WorkType == WorkModeType.LoadFromFinalXml)
-            {
-                UpgradeChildInFinalXml(childToUpdate, childListIndex);
-            }
-            else
-            {
-                UpdateChildInXaml(childToUpdate, childListIndex);
-            }
+            
         }
 
-        public void DeleteChild(int childListIndex)
+        /// <summary>
+        /// Deletes elements from repository of childs and from FinalXml file if
+        /// needToDeleteInFinalXml param is true (by default it is).
+        /// </summary>
+        /// <param name="needToDeleteInFinalXml">
+        /// Determines whether or not to delete element from final xml file.
+        /// </param>
+        /// 
+        public void DeleteChild(Child childToDelete, bool needToDeleteInFinalXml = true)
         {
-            _childs.RemoveAt(childListIndex);
+            int childListIndexToDelete = _childs.IndexOf(childToDelete);
 
-            if (WorkMode.WorkType == WorkModeType.LoadFromFinalXml)
+            if(WorkMode.WorkType == WorkModeType.LoadFromFinalXml
+                && needToDeleteInFinalXml)
             {
-                DeleteChildInFinalXaml(childListIndex);
+                DeleteChildInFinalXaml(childToDelete);
             }
-            else
+            else if (WorkMode.WorkType != WorkModeType.LoadFromFinalXml)
             {
-                DeleteChildInXaml(childListIndex);
+                DeleteChildInXaml(childListIndexToDelete);
             }
+
+            _childs.RemoveAt(childListIndexToDelete);
+
         }
 
         /// <summary>
@@ -182,7 +200,6 @@ namespace PicturesSoft
         private static List<Child> LoadChildsFromFinalXml()
         {
             List<Child> loadedChilds = new List<Child>();
-            int counterForGroupCode = 1;
 
             XDocument xDoc = XDocument.Load(ChildDataFile);
 
@@ -195,15 +212,12 @@ namespace PicturesSoft
                     (int)childElem.Attribute("item"),
                     (string)childElem.Attribute("name"),
                     (string)childElem.Attribute("name"),
-                    counterForGroupCode,
-                    "undef"
+                    (int)groupElem.Attribute("id"),
+                    (string)childElem.Attribute("item") + ".png"
                     ));
                 }
 
-                counterForGroupCode++;
             }
-
-            GlobalGroupCode = counterForGroupCode;
 
             return loadedChilds;
         }
@@ -211,26 +225,49 @@ namespace PicturesSoft
         private void AddChildToFinaXml(Child newChild)
         {
             XDocument xDoc = XDocument.Load(ChildDataFile);
-            IEnumerable<XElement> groupElemCollection = xDoc.Element(Xmlns + "moduleConfig").
-                Element(Xmlns + "property").Elements(Xmlns + "group");
 
-            foreach (XElement groupElem in groupElemCollection)
-            {
-                if(groupElem.Attribute("id").Value == newChild.GroupCode.ToString())
-                {
-                    groupElem.Add(new XElement(Xmlns + "child",
-                    new XAttribute("name", newChild.Name),
-                    new XAttribute("image-name", newChild.ImgName)
-                    ));
-                    break;
-                }
-                
-            }
+            XElement groupXElemChildOwner = xDoc.Element(Xmlns + "moduleConfig").
+                Element(Xmlns + "property").Elements(Xmlns + "group")
+                .Single(x => (int)x.Attribute("id") == newChild.GroupCode);
+
+            groupXElemChildOwner.Add(new XElement(Xmlns + "good",
+                   new XAttribute("item", newChild.Code),
+                   new XAttribute("name", newChild.SimpleName)
+                   ));
 
             xDoc.Save(ChildDataFile);
         }
 
-        //>
+        private void UpgradeChildInFinalXml(Child childToUpdate, Child oldChild)
+        {
+            XDocument xDoc = XDocument.Load(ChildDataFile);
+
+            XElement childXElemToUpdate = xDoc.Element(Xmlns + "moduleConfig").
+               Element(Xmlns + "property").Elements(Xmlns + "group")
+               .Single(x => (int)x.Attribute("id") == oldChild.GroupCode).Elements(Xmlns + "good")
+               .Single(x => (int)x.Attribute("item") == oldChild.Code);
+
+            childXElemToUpdate.Attribute("name").Value = childToUpdate.SimpleName;
+            childXElemToUpdate.Attribute("item").Value = childToUpdate.Code.ToString();
+
+            xDoc.Save(ChildDataFile);
+        }
+
+        private void DeleteChildInFinalXaml(Child childToDelete)
+        {
+            XDocument xDoc = XDocument.Load(ChildDataFile);
+
+            XElement childXElemToDelete = xDoc.Element(Xmlns + "moduleConfig").
+               Element(Xmlns + "property").Elements(Xmlns + "group")
+               .Single(x => (int)x.Attribute("id") == childToDelete.GroupCode).Elements(Xmlns + "good")
+               .Single(x => (int)x.Attribute("item") == childToDelete.Code);
+
+            childXElemToDelete.Remove();
+
+            xDoc.Save(ChildDataFile);
+        }
+
+        //> Final Xml methods
 
         static List<Child> LoadChilds()
         {

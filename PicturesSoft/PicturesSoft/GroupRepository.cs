@@ -58,6 +58,7 @@ namespace PicturesSoft
             if(WorkMode.WorkType == WorkModeType.LoadFromFinalXml)
             {
                 Xmlns = XNamespace.Get("http://crystals.ru/cash/settings");
+                GlobalId = 1;
                 _groups = LoadGroupsFromFinalXml();
             }
             else
@@ -104,40 +105,46 @@ namespace PicturesSoft
             }
         }
 
-        public void UpdateGroup(Group groupToUpdate, int groupListIndex)
+        public void UpdateGroup(Group groupToUpdate, Group oldGroup)
         {
             if (groupToUpdate == null)
                 throw new ArgumentNullException("group");
 
-            //< Groups list update
-            _groups[groupListIndex].Id = groupToUpdate.Id;
-            _groups[groupListIndex].Name = groupToUpdate.Name;
-            _groups[groupListIndex].ImgName = groupToUpdate.ImgName;
-            //>
+            int oldGroupListIndex = _groups.IndexOf(oldGroup);
+
 
             if (WorkMode.WorkType == WorkModeType.LoadFromFinalXml)
             {
-                UpgradeGroupInFinalXml(groupToUpdate, groupListIndex);
+                UpgradeGroupInFinalXml(groupToUpdate, oldGroup);
             }
             else
             {
-                UpdateGroupInXaml(groupToUpdate, groupListIndex);
+                UpdateGroupInXaml(groupToUpdate, oldGroupListIndex);
             }
+
+            //< Groups list update
+            _groups[oldGroupListIndex].Id = groupToUpdate.Id;
+            _groups[oldGroupListIndex].Name = groupToUpdate.Name;
+            _groups[oldGroupListIndex].ImgName = groupToUpdate.ImgName;
+            //>
+
                 
         }
 
-        public void DeleteGroup(int groupListIndex)
+        public void DeleteGroup(Group groupToDelete)
         {
-            _groups.RemoveAt(groupListIndex);
+            int groupToDeleteListIndex = _groups.IndexOf(groupToDelete);
 
             if (WorkMode.WorkType == WorkModeType.LoadFromFinalXml)
             {
-                DeleteGroupInFinalXaml(groupListIndex);
+                DeleteGroupInFinalXaml(groupToDelete);
             }
             else
             {
-                DeleteGroupInXaml(groupListIndex);
-            }       
+                DeleteGroupInXaml(groupToDeleteListIndex);
+            }
+
+            _groups.RemoveAt(groupToDeleteListIndex); 
         }
 
         /// <summary>
@@ -160,23 +167,6 @@ namespace PicturesSoft
             return new List<Group>(_groups);
         }
 
-        //help method for child repo while adding or editing child element
-        /*
-        public static int GetGroupNameById(int groupId)
-        {
-            string groupNametoReturn;
-
-            foreach(Group gr in LoadGroupsFromFinalXml())
-            {
-                if(gr.Id == groupId)
-                {
-                    groupNametoReturn = gr.Name;
-                }
-            }
-
-            return groupNametoReturn;
-        }
-        */
         #endregion // Public Interface
 
         #region Private Helpers
@@ -185,22 +175,27 @@ namespace PicturesSoft
         private static List<Group> LoadGroupsFromFinalXml()
         {
             List<Group> loadedGroups = new List<Group>();
-            int counter = 1;
 
             XDocument xDoc = XDocument.Load(GroupDataFile);
 
             foreach(XElement groupElem in xDoc.Element(Xmlns + "moduleConfig").
                 Element(Xmlns + "property").Elements(Xmlns + "group"))
             {
+                //adding attribute id to group element if it doesn't exist
+                if(groupElem.Attribute("id") == null)
+                {
+                    groupElem.Add(new XAttribute("id", GlobalId));
+                }
+
                 loadedGroups.Add(Group.CreateGroup(
-                    counter,
+                    (int)groupElem.Attribute("id"),
                     (string)groupElem.Attribute("name"),
                     (string)groupElem.Attribute("image-name")
                     ));
-                counter++;
+                GlobalId++;
             }
 
-            GlobalId = counter;
+            xDoc.Save(GroupDataFile);
 
             return loadedGroups;
         }
@@ -212,51 +207,37 @@ namespace PicturesSoft
 
             groupRoot.Add(new XElement(Xmlns + "group",
                 new XAttribute("name", newGroup.Name),
-                new XAttribute("image-name", newGroup.ImgName)
+                new XAttribute("image-name", newGroup.ImgName),
+                new XAttribute("id", newGroup.Id)
                 ));
 
             xDoc.Save(GroupDataFile);
         }
 
-        private void UpgradeGroupInFinalXml(Group groupToUpdate, int groupLocationId)
+        private void UpgradeGroupInFinalXml(Group groupToUpdate, Group oldGroup)
         {
             XDocument xDoc = XDocument.Load(GroupDataFile);
-            XElement groupRoot = xDoc.Element(Xmlns + "moduleConfig").Element(Xmlns + "property");
 
-            int countId = 0;
+            XElement groupXElemToUpdate = xDoc.Element(Xmlns + "moduleConfig").
+                Element(Xmlns + "property").Elements(Xmlns + "group")
+                .Single(x => (int)x.Attribute("id") == oldGroup.Id);
 
-            foreach (XElement groupXElem in groupRoot.Elements(Xmlns + "group"))
-            {
-                if (countId == groupLocationId)
-                {
-                    groupXElem.Attribute("name").Value = groupToUpdate.Name;
-                    groupXElem.Attribute("image-name").Value = groupToUpdate.ImgName;
-                    break;
-                }
-
-                countId++;
-            }
+            groupXElemToUpdate.Attribute("name").Value = groupToUpdate.Name;
+            groupXElemToUpdate.Attribute("image-name").Value = groupToUpdate.ImgName;
+            groupXElemToUpdate.Attribute("id").Value = groupToUpdate.Id.ToString();
 
             xDoc.Save(GroupDataFile);
         }
 
-        private void DeleteGroupInFinalXaml(int groupLocationId)
+        private void DeleteGroupInFinalXaml(Group groupToDelete)
         {
             XDocument xDoc = XDocument.Load(GroupDataFile);
-            XElement groupRoot = xDoc.Element(Xmlns + "moduleConfig").Element(Xmlns + "property");
 
-            int countId = 0;
+            XElement groupXElemToDelete = xDoc.Element(Xmlns + "moduleConfig").
+                Element(Xmlns + "property").Elements(Xmlns + "group")
+                .Single(x => (int)x.Attribute("id") == groupToDelete.Id);
 
-            foreach (XElement groupXElem in groupRoot.Elements(Xmlns + "group"))
-            {
-                if (countId == groupLocationId)
-                {
-                    groupXElem.Remove();
-                    break;
-                }
-
-                countId++;
-            }
+            groupXElemToDelete.Remove();
 
             xDoc.Save(GroupDataFile);
         }
