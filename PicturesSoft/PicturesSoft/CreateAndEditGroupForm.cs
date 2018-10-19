@@ -51,16 +51,13 @@ namespace PicturesSoft
 
         private void opnFileDlgGrBtn_Click(object sender, System.EventArgs e)
         {
-            Stream fileStream = null;
+            string openFileDialogFilter = "Image files (*.png;*.jpeg)|*.png;*.jpeg";
+            DialogInvoker dialogInvoker = new DialogInvoker(openFileDialogFilter);
 
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Image files (*.png;*.jpeg)|*.png;*.jpeg";
-
-            if (openFileDialog.ShowDialog() == DialogResult.OK && (fileStream = openFileDialog.OpenFile()) != null)
+            if (dialogInvoker.Invoke() == DialogResult.OK)
             {
                 //System folder path of selected item (full source file name)
-                string sourceFileName = openFileDialog.FileName;
-                this.groupImgPathTextBox.Text = sourceFileName;
+                this.groupImgPathTextBox.Text = dialogInvoker.InvokeDialog.FileName;
             }
         }
 
@@ -77,8 +74,9 @@ namespace PicturesSoft
             string sourceFileName = this.groupImgPathTextBox.Text;
             //Get image extension
             string imgExtension = sourceFileName.Substring(sourceFileName.LastIndexOf('.'));
+            // File name for saving in .xml file
+            string fileName = sourceFileName.Substring(sourceFileName.LastIndexOf("\\") + 1);
 
-            
             if (File.Exists(sourceFileName))
             {
                 //Full destination path for file (full destination file name)
@@ -86,10 +84,12 @@ namespace PicturesSoft
 
                 if (((Form1)this.Owner).AppWorkMode.WorkType == WorkModeType.LoadFromFinalXml)
                 {
-                    destFolderName = ((Form1)this.Owner).destImgFolderPath +
-                        "\\" + this.groupIdTextBox.Text + 
-                        imgExtension;
-                    File.Copy(sourceFileName, destFolderName, true);
+                    destFolderName = ((Form1)this.Owner).DestImgFolderPath +
+                        "\\" + fileName;
+                    if(!sourceFileName.Equals(destFolderName))
+                    {
+                        File.Copy(sourceFileName, destFolderName, true);
+                    } 
                 }
                 else
                 {
@@ -100,9 +100,6 @@ namespace PicturesSoft
                     File.Copy(sourceFileName, destFolderName, true);
                 }
             }
-
-            // File name for saving in .xml file
-            string fileName = this.groupIdTextBox.Text + imgExtension;
 
             //need validation here
             //< getting values from textboxes

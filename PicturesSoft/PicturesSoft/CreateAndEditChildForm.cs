@@ -55,16 +55,13 @@ namespace PicturesSoft
 
         private void opnFileDlgChildBtn_Click(object sender, EventArgs e)
         {
-            Stream fileStream = null;
+            string openFileDialogFilter = "Image files (*.png;*.jpeg)|*.png;*.jpeg";
+            DialogInvoker dialogInvoker = new DialogInvoker(openFileDialogFilter);
 
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Image files (*.png;*.jpeg)|*.png;*.jpeg";
-
-            if (openFileDialog.ShowDialog() == DialogResult.OK && (fileStream = openFileDialog.OpenFile()) != null)
+            if (dialogInvoker.Invoke() == DialogResult.OK)
             {
                 //System folder path of selected item (full source file name)
-                string sourceFileName = openFileDialog.FileName;
-                this.childImgPathTextBox.Text = sourceFileName;
+                this.childImgPathTextBox.Text = dialogInvoker.InvokeDialog.FileName;
             }
         }
 
@@ -79,6 +76,14 @@ namespace PicturesSoft
 
             //System folder path of selected item (full source file name)
             string sourceFileName = this.childImgPathTextBox.Text;
+
+            if (WorkMode.WorkType.Equals(WorkModeType.Edit)
+                && !this.childImgPathTextBox.Text.Contains("\\"))
+            {
+                sourceFileName = ((Form1)this.Owner).DestImgFolderPath + 
+                    "\\" + this.childImgPathTextBox.Text;
+            }
+
             //Get image extension
             string imgExtension = sourceFileName.Substring(sourceFileName.LastIndexOf('.'));
 
@@ -87,13 +92,18 @@ namespace PicturesSoft
                 // Full destination path for file(full destination file name)
                 string destFolderName;
 
-
                 if (((Form1)this.Owner).AppWorkMode.WorkType == WorkModeType.LoadFromFinalXml)
                 {
-                    destFolderName = ((Form1)this.Owner).destImgFolderPath +
+                    destFolderName = ((Form1)this.Owner).DestImgFolderPath +
                         "\\" + this.childCodeTextBox.Text +
                         imgExtension;
-                    File.Copy(sourceFileName, destFolderName, true);
+                    if(!sourceFileName.Equals(destFolderName))
+                    {
+                        if (sourceFileName.Contains(((Form1)this.Owner).DestImgFolderPath))
+                            File.Move(sourceFileName, destFolderName);                        
+                        else                        
+                            File.Copy(sourceFileName, destFolderName, true);                        
+                    }     
                 }
                 else
                 {

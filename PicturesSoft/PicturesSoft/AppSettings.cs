@@ -14,14 +14,12 @@ namespace PicturesSoft
 
         private void openFileDlgXmlCnfgFileButton_Click(object sender, EventArgs e)
         {
-            Stream fileStream = null;
+            string openFileDialogFilter = "Xml files (*.xml)|*.xml";
+            DialogInvoker dialogInvoker = new DialogInvoker(openFileDialogFilter);
 
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Xml files (*.xml)|*.xml";
-
-            if (openFileDialog.ShowDialog() == DialogResult.OK && (fileStream = openFileDialog.OpenFile()) != null)
+            if(dialogInvoker.Invoke() == DialogResult.OK)
             {
-                this.xmlCnfgFilePathTextBox.Text = openFileDialog.FileName;
+                this.xmlCnfgFilePathTextBox.Text = dialogInvoker.InvokeDialog.FileName;
             }
         }
 
@@ -40,8 +38,8 @@ namespace PicturesSoft
 
         private void startBtn_Click(object sender, EventArgs e)
         {
-            ((Form1)this.Owner).destImgFolderPath = this.destImgFolderTextBox.Text;
-            ((Form1)this.Owner).xmlCnfgFilePath = this.xmlCnfgFilePathTextBox.Text;
+            ((Form1)this.Owner).DestImgFolderPath = this.destImgFolderTextBox.Text;
+            ((Form1)this.Owner).XmlCnfgFilePath = this.xmlCnfgFilePathTextBox.Text;
 
             this.Close();
         }
