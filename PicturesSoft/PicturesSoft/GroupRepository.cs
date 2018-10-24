@@ -99,9 +99,27 @@ namespace PicturesSoft
                 {
                     AddGroupToXml(group);
                 }
+            }
+        }
 
-               // if (this.GroupAdded != null)
-                //    this.GroupAdded(this, new GroupAddedEventArgs(group));
+        public void AddGroup(Group newGroup, Group groupToInsertAfter)
+        {
+            if (newGroup == null)
+                throw new ArgumentNullException("group");
+
+            if (!_groups.Contains(newGroup))
+            {
+                int groupIndexToInsertAfter = _groups.IndexOf(groupToInsertAfter);
+                _groups.Insert(groupIndexToInsertAfter + 1, newGroup);
+
+                if (WorkMode.WorkType == WorkModeType.LoadFromFinalXml)
+                {
+                    AddGroupToFinaXml(newGroup, groupToInsertAfter);
+                }
+                else
+                {
+                    AddGroupToXml(newGroup);
+                }
             }
         }
 
@@ -147,6 +165,15 @@ namespace PicturesSoft
             _groups.RemoveAt(groupToDeleteListIndex); 
         }
 
+        public void SwapGroups(int firstGroupIndexToSwap, int secondGroupIndexToSwap)
+        {
+            SwapGroupsInFinalXmlFile(_groups[firstGroupIndexToSwap], _groups[secondGroupIndexToSwap]);
+
+            var tempGroup = _groups[firstGroupIndexToSwap];
+            _groups[firstGroupIndexToSwap] = _groups[secondGroupIndexToSwap];
+            _groups[secondGroupIndexToSwap] = tempGroup;
+        }
+
         /// <summary>
         /// Returns true if the specified group exists in the
         /// repository, or false if it is not.
@@ -165,6 +192,22 @@ namespace PicturesSoft
         public List<Group> GetGroups()
         {
             return new List<Group>(_groups);
+        }
+
+        public bool ValidateGroupId(int groupIdToValidate)
+        {
+            bool isValid = true;
+
+            foreach (var gr in _groups)
+            {
+                if (gr.Id == groupIdToValidate)
+                {
+                    isValid = false;
+                    break;
+                }
+            }
+
+            return isValid;
         }
 
         #endregion // Public Interface
@@ -213,6 +256,24 @@ namespace PicturesSoft
 
             xDoc.Save(GroupDataFile);
         }
+        
+        private void AddGroupToFinaXml(Group newGroup, Group groupToInsertAfter)
+        {
+            XDocument xDoc = XDocument.Load(GroupDataFile);
+
+            XElement groupXElemToInsertAfter = xDoc.Element(Xmlns + "moduleConfig").
+                Element(Xmlns + "property").Elements(Xmlns + "group")
+                .Single(x => (int)x.Attribute("id") == groupToInsertAfter.Id);
+
+            groupXElemToInsertAfter.AddAfterSelf(new XElement(Xmlns + "group",
+                new XAttribute("name", newGroup.Name),
+                new XAttribute("image-name", newGroup.ImgName),
+                new XAttribute("id", newGroup.Id)
+                ));
+
+            xDoc.Save(GroupDataFile);
+        }
+
 
         private void UpgradeGroupInFinalXml(Group groupToUpdate, Group oldGroup)
         {
@@ -241,6 +302,27 @@ namespace PicturesSoft
 
             xDoc.Save(GroupDataFile);
         }
+
+        private void SwapGroupsInFinalXmlFile(Group firstGroupToSwap, Group secondGroupToSwap)
+        {
+            XDocument xDoc = XDocument.Load(GroupDataFile);
+
+            XElement firstGroupXElemToSwap = xDoc.Element(Xmlns + "moduleConfig").
+               Element(Xmlns + "property").Elements(Xmlns + "group")
+               .Single(x => (int)x.Attribute("id") == firstGroupToSwap.Id);
+
+            XElement secondGroupXElemToSwap = xDoc.Element(Xmlns + "moduleConfig").
+               Element(Xmlns + "property").Elements(Xmlns + "group")
+               .Single(x => (int)x.Attribute("id") == secondGroupToSwap.Id);
+
+            XElement tempXElement = new XElement(firstGroupXElemToSwap);
+
+            firstGroupXElemToSwap.ReplaceWith(secondGroupXElemToSwap);
+            secondGroupXElemToSwap.ReplaceWith(tempXElement);
+
+            xDoc.Save(GroupDataFile);
+        }
+
         //> Final Xml methods
 
         static List<Group> LoadGroups()

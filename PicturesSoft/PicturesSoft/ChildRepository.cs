@@ -103,6 +103,27 @@ namespace PicturesSoft
             }
         }
 
+        public void AddChild(Child newChild, Child childToInsertAfter)
+        {
+            if (newChild == null)
+                throw new ArgumentNullException("child");
+
+            if (!_childs.Contains(newChild))
+            {
+                int childIndexToInsertAfter = _childs.IndexOf(childToInsertAfter);
+                _childs.Insert(childIndexToInsertAfter + 1, newChild);
+
+                if (WorkMode.WorkType == WorkModeType.LoadFromFinalXml)
+                {
+                    AddChildToFinaXml(newChild, childToInsertAfter);
+                }
+                else
+                {
+                    AddChildToXml(newChild);
+                }
+            }
+        }
+
         public void UpdateChild(Child childToUpdate, Child oldChild, bool needToUpdateInFinalXml = true)
         {
             if (childToUpdate == null)
@@ -127,9 +148,7 @@ namespace PicturesSoft
             _childs[oldChildListIndex].SimpleName = childToUpdate.SimpleName;
             _childs[oldChildListIndex].GroupCode = childToUpdate.GroupCode;
             _childs[oldChildListIndex].ImgName = childToUpdate.ImgName;
-            //>
-
-            
+            //>  
         }
 
         /// <summary>
@@ -156,6 +175,15 @@ namespace PicturesSoft
 
             _childs.RemoveAt(childListIndexToDelete);
 
+        }
+
+        public void SwapChilds(int firstChildIndexToSwap, int secondChildIndexToSwap)
+        {
+            SwapChildsInFinalXmlFile(_childs[firstChildIndexToSwap], _childs[secondChildIndexToSwap]);
+
+            var tempChild = _childs[firstChildIndexToSwap];
+            _childs[firstChildIndexToSwap] = _childs[secondChildIndexToSwap];
+            _childs[secondChildIndexToSwap] = tempChild;
         }
 
         /// <summary>
@@ -189,6 +217,22 @@ namespace PicturesSoft
                 }
             }
             return children;
+        }
+
+        public bool ValidateChildCode(int childCodeToValidate)
+        {
+            bool isValid = true;
+
+            foreach(var ch in _childs)
+            {
+                if(ch.Code == childCodeToValidate)
+                {
+                    isValid = false;
+                    break;
+                }
+            }
+
+            return isValid;
         }
 
         #endregion // Public Interface
@@ -238,6 +282,24 @@ namespace PicturesSoft
             xDoc.Save(ChildDataFile);
         }
 
+        private void AddChildToFinaXml(Child newChild, Child childToInsertAfter)
+        {
+            XDocument xDoc = XDocument.Load(ChildDataFile);
+
+            XElement childXElemToInsertAfter = xDoc.Element(Xmlns + "moduleConfig").
+                Element(Xmlns + "property").Elements(Xmlns + "group")
+                .Single(x => (int)x.Attribute("id") == childToInsertAfter.GroupCode)
+                .Elements(Xmlns + "good")
+                .Single(x => (int)x.Attribute("item") == childToInsertAfter.Code);
+
+            childXElemToInsertAfter.AddAfterSelf(new XElement(Xmlns + "good",
+                   new XAttribute("item", newChild.Code),
+                   new XAttribute("name", newChild.SimpleName)
+                   ));
+
+            xDoc.Save(ChildDataFile);
+        }
+
         private void UpgradeChildInFinalXml(Child childToUpdate, Child oldChild)
         {
             XDocument xDoc = XDocument.Load(ChildDataFile);
@@ -263,6 +325,28 @@ namespace PicturesSoft
                .Single(x => (int)x.Attribute("item") == childToDelete.Code);
 
             childXElemToDelete.Remove();
+
+            xDoc.Save(ChildDataFile);
+        }
+
+        private void SwapChildsInFinalXmlFile(Child firstChildToSwap, Child secondChildToSwap)
+        {
+            XDocument xDoc = XDocument.Load(ChildDataFile);
+
+            XElement firstChildXElemToSwap = xDoc.Element(Xmlns + "moduleConfig").
+               Element(Xmlns + "property").Elements(Xmlns + "group")
+               .Single(x => (int)x.Attribute("id") == firstChildToSwap.GroupCode).Elements(Xmlns + "good")
+               .Single(x => (int)x.Attribute("item") == firstChildToSwap.Code);
+
+            XElement secondChildXElemToSwap = xDoc.Element(Xmlns + "moduleConfig").
+               Element(Xmlns + "property").Elements(Xmlns + "group")
+               .Single(x => (int)x.Attribute("id") == secondChildToSwap.GroupCode).Elements(Xmlns + "good")
+               .Single(x => (int)x.Attribute("item") == secondChildToSwap.Code);
+
+            XElement tempXElement = new XElement(firstChildXElemToSwap);
+
+            firstChildXElemToSwap.ReplaceWith(secondChildXElemToSwap);
+            secondChildXElemToSwap.ReplaceWith(tempXElement);
 
             xDoc.Save(ChildDataFile);
         }
