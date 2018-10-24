@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.opnFileDlgGrBtn = new System.Windows.Forms.Button();
             this.groupImgPathTextBox = new System.Windows.Forms.TextBox();
             this.groupNameTextBox = new System.Windows.Forms.TextBox();
@@ -37,11 +38,17 @@
             this.groupIdName = new System.Windows.Forms.Label();
             this.CreateAndEditGrCancelBtn = new System.Windows.Forms.Button();
             this.CreateAndEditGrSaveBtn = new System.Windows.Forms.Button();
+            this.addToTheEndRadioBtn = new System.Windows.Forms.RadioButton();
+            this.addAfterSelectedRadioBtn = new System.Windows.Forms.RadioButton();
+            this.radioBtnsStoragePanel = new System.Windows.Forms.Panel();
+            this.errorProvider1 = new System.Windows.Forms.ErrorProvider(this.components);
+            this.radioBtnsStoragePanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.errorProvider1)).BeginInit();
             this.SuspendLayout();
             // 
             // opnFileDlgGrBtn
             // 
-            this.opnFileDlgGrBtn.Location = new System.Drawing.Point(272, 126);
+            this.opnFileDlgGrBtn.Location = new System.Drawing.Point(291, 126);
             this.opnFileDlgGrBtn.Name = "opnFileDlgGrBtn";
             this.opnFileDlgGrBtn.Size = new System.Drawing.Size(65, 19);
             this.opnFileDlgGrBtn.TabIndex = 18;
@@ -56,6 +63,7 @@
             this.groupImgPathTextBox.Name = "groupImgPathTextBox";
             this.groupImgPathTextBox.Size = new System.Drawing.Size(135, 20);
             this.groupImgPathTextBox.TabIndex = 17;
+            this.groupImgPathTextBox.Validating += new System.ComponentModel.CancelEventHandler(this.groupImgPathTextBox_Validating);
             // 
             // groupNameTextBox
             // 
@@ -63,6 +71,7 @@
             this.groupNameTextBox.Name = "groupNameTextBox";
             this.groupNameTextBox.Size = new System.Drawing.Size(135, 20);
             this.groupNameTextBox.TabIndex = 16;
+            this.groupNameTextBox.Validating += new System.ComponentModel.CancelEventHandler(this.groupNameTextBox_Validating);
             // 
             // groupIdTextBox
             // 
@@ -70,6 +79,7 @@
             this.groupIdTextBox.Name = "groupIdTextBox";
             this.groupIdTextBox.Size = new System.Drawing.Size(135, 20);
             this.groupIdTextBox.TabIndex = 15;
+            this.groupIdTextBox.Validating += new System.ComponentModel.CancelEventHandler(this.groupIdTextBox_Validating);
             // 
             // imgPathLable
             // 
@@ -100,7 +110,7 @@
             // 
             // CreateAndEditGrCancelBtn
             // 
-            this.CreateAndEditGrCancelBtn.Location = new System.Drawing.Point(78, 179);
+            this.CreateAndEditGrCancelBtn.Location = new System.Drawing.Point(67, 223);
             this.CreateAndEditGrCancelBtn.Name = "CreateAndEditGrCancelBtn";
             this.CreateAndEditGrCancelBtn.Size = new System.Drawing.Size(75, 23);
             this.CreateAndEditGrCancelBtn.TabIndex = 11;
@@ -110,7 +120,7 @@
             // 
             // CreateAndEditGrSaveBtn
             // 
-            this.CreateAndEditGrSaveBtn.Location = new System.Drawing.Point(264, 180);
+            this.CreateAndEditGrSaveBtn.Location = new System.Drawing.Point(253, 224);
             this.CreateAndEditGrSaveBtn.Name = "CreateAndEditGrSaveBtn";
             this.CreateAndEditGrSaveBtn.Size = new System.Drawing.Size(75, 23);
             this.CreateAndEditGrSaveBtn.TabIndex = 10;
@@ -118,11 +128,47 @@
             this.CreateAndEditGrSaveBtn.UseVisualStyleBackColor = true;
             this.CreateAndEditGrSaveBtn.Click += new System.EventHandler(this.CreateAndEditGrSaveBtn_Click);
             // 
+            // addToTheEndRadioBtn
+            // 
+            this.addToTheEndRadioBtn.AutoSize = true;
+            this.addToTheEndRadioBtn.Checked = true;
+            this.addToTheEndRadioBtn.Location = new System.Drawing.Point(19, 3);
+            this.addToTheEndRadioBtn.Name = "addToTheEndRadioBtn";
+            this.addToTheEndRadioBtn.Size = new System.Drawing.Size(120, 17);
+            this.addToTheEndRadioBtn.TabIndex = 19;
+            this.addToTheEndRadioBtn.TabStop = true;
+            this.addToTheEndRadioBtn.Text = "Add to the last page";
+            this.addToTheEndRadioBtn.UseVisualStyleBackColor = true;
+            // 
+            // addAfterSelectedRadioBtn
+            // 
+            this.addAfterSelectedRadioBtn.AutoSize = true;
+            this.addAfterSelectedRadioBtn.Location = new System.Drawing.Point(19, 26);
+            this.addAfterSelectedRadioBtn.Name = "addAfterSelectedRadioBtn";
+            this.addAfterSelectedRadioBtn.Size = new System.Drawing.Size(111, 17);
+            this.addAfterSelectedRadioBtn.TabIndex = 20;
+            this.addAfterSelectedRadioBtn.Text = "Add after selected";
+            this.addAfterSelectedRadioBtn.UseVisualStyleBackColor = true;
+            // 
+            // radioBtnsStoragePanel
+            // 
+            this.radioBtnsStoragePanel.Controls.Add(this.addToTheEndRadioBtn);
+            this.radioBtnsStoragePanel.Controls.Add(this.addAfterSelectedRadioBtn);
+            this.radioBtnsStoragePanel.Location = new System.Drawing.Point(111, 164);
+            this.radioBtnsStoragePanel.Name = "radioBtnsStoragePanel";
+            this.radioBtnsStoragePanel.Size = new System.Drawing.Size(174, 53);
+            this.radioBtnsStoragePanel.TabIndex = 21;
+            // 
+            // errorProvider1
+            // 
+            this.errorProvider1.ContainerControl = this;
+            // 
             // CreateAndEditGroupForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(395, 236);
+            this.ClientSize = new System.Drawing.Size(395, 259);
+            this.Controls.Add(this.radioBtnsStoragePanel);
             this.Controls.Add(this.opnFileDlgGrBtn);
             this.Controls.Add(this.groupImgPathTextBox);
             this.Controls.Add(this.groupNameTextBox);
@@ -133,6 +179,9 @@
             this.Controls.Add(this.CreateAndEditGrCancelBtn);
             this.Controls.Add(this.CreateAndEditGrSaveBtn);
             this.Name = "CreateAndEditGroupForm";
+            this.radioBtnsStoragePanel.ResumeLayout(false);
+            this.radioBtnsStoragePanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.errorProvider1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -149,5 +198,9 @@
         private System.Windows.Forms.Label groupIdName;
         private System.Windows.Forms.Button CreateAndEditGrCancelBtn;
         private System.Windows.Forms.Button CreateAndEditGrSaveBtn;
+        private System.Windows.Forms.RadioButton addToTheEndRadioBtn;
+        private System.Windows.Forms.RadioButton addAfterSelectedRadioBtn;
+        private System.Windows.Forms.Panel radioBtnsStoragePanel;
+        private System.Windows.Forms.ErrorProvider errorProvider1;
     }
 }
