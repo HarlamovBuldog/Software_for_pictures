@@ -13,8 +13,8 @@ namespace PicturesSoft
     {
         #region private fields
 
-        private GroupRepository groupRep;
-        private ChildRepository childRep;
+        //private GroupRepository groupRep;
+        //private ChildRepository childRep;
         private object globalSelectedItem;
         private Group groupOwner;
 
@@ -26,6 +26,8 @@ namespace PicturesSoft
         public string DestImgFolderPath { get; set; }
         public WorkMode AppWorkMode { get; set; }
         public int globalListViewRelatedPageNumber { get; private set; }
+        public ChildRepository ChildRep { get; private set; }
+        public GroupRepository GroupRep { get; private set; }
 
         #endregion //public properties
 
@@ -36,8 +38,8 @@ namespace PicturesSoft
             InitializeComponent();
 
             //Dialog for setting pathes
-            //AppSettings appSettingsDialog = new AppSettings();
-            //var result = appSettingsDialog.ShowDialog(this);
+            AppSettings appSettingsDialog = new AppSettings();
+            var result = appSettingsDialog.ShowDialog(this);
 
             //if (result == DialogResult.Cancel)
              //   this.Close();
@@ -50,21 +52,21 @@ namespace PicturesSoft
             //string childXmlFilePath = Path.Combine(Path.GetDirectoryName(
             //         Assembly.GetExecutingAssembly().Location), @"Data\Childs.xml");
 
-            XmlCnfgFilePath = "D:\\Download\\crystal-cash\\config\\plugins\\weightCatalog-xml-config.xml";
-            DestImgFolderPath = "D:\\Download\\crystal-cash\\images";
+            //XmlCnfgFilePath = "D:\\Download\\crystal-cash\\config\\plugins\\weightCatalog-xml-config.xml";
+            //DestImgFolderPath = "D:\\Download\\crystal-cash\\images";
 
             AppWorkMode = new WorkMode() { WorkType = WorkModeType.LoadFromFinalXml };
 
             if (this.AppWorkMode.WorkType == WorkModeType.LoadFromFinalXml)
             {
-                groupRep = new GroupRepository(XmlCnfgFilePath, AppWorkMode);
-                childRep = new ChildRepository(XmlCnfgFilePath, AppWorkMode);
+                GroupRep = new GroupRepository(XmlCnfgFilePath, AppWorkMode);
+                ChildRep = new ChildRepository(XmlCnfgFilePath, AppWorkMode);
                 createFinalXmlBtn.Enabled = false;
             }
             else
             {
-                groupRep = new GroupRepository("Data/Groups.xml");
-                childRep = new ChildRepository("Data/Childs.xml");
+                GroupRep = new GroupRepository("Data/Groups.xml");
+                ChildRep = new ChildRepository("Data/Childs.xml");
             }
 
             //filling group listview
@@ -91,9 +93,15 @@ namespace PicturesSoft
 
         #region Public Group methods
 
-        public void AddNewGroup(Group newGroup)
+        public void AddNewGroup(Group newGroup, bool addGroupToTheEndOfTheList = true)
         {
-            groupRep.AddGroup(newGroup);
+            if(addGroupToTheEndOfTheList)
+                GroupRep.AddGroup(newGroup);
+            else
+            {
+                var insertAfterGroup = (Group)globalSelectedItem;
+                GroupRep.AddGroup(newGroup, insertAfterGroup);
+            }
             GroupListViewRedraw();
         }
 
@@ -118,7 +126,7 @@ namespace PicturesSoft
             }
 
             //groupRep.UpdateGroup(groupToUpdate, groupListIndex);
-            groupRep.UpdateGroup(groupToUpdate, oldGroup);   
+            GroupRep.UpdateGroup(groupToUpdate, oldGroup);   
             GroupListViewRedraw();   
         }
 
@@ -127,7 +135,7 @@ namespace PicturesSoft
             //var groupListIndex = groupRep.GetGroups().IndexOf((Group)globalSelectedItem);
 
             //groupRep.DeleteGroup(groupListIndex);
-            groupRep.DeleteGroup(groupToDelete);
+            GroupRep.DeleteGroup(groupToDelete);
             GroupListViewRedraw();
 
             //need to also delete all childs connected to the group
@@ -139,9 +147,16 @@ namespace PicturesSoft
 
         #region Public Child methods
 
-        public void AddNewChild(Child newChild)
+        public void AddNewChild(Child newChild, bool addChildToTheEndOfTheList = true)
         {
-            childRep.AddChild(newChild);
+            if (addChildToTheEndOfTheList)
+                ChildRep.AddChild(newChild);
+            else
+            {
+                var insertAfterChild = (Child)globalSelectedItem;
+                ChildRep.AddChild(newChild, insertAfterChild);
+            }
+
             ChildListViewRedraw();
             NavBtwPagesTableLayoutRedraw();
         }
@@ -152,15 +167,8 @@ namespace PicturesSoft
             Child oldChild = (Child)globalSelectedItem;
 
             //childRep.UpdateChild(childToUpdate, childListIndex);
-            childRep.UpdateChild(childToUpdate, oldChild);
+            ChildRep.UpdateChild(childToUpdate, oldChild);
 
-            /*
-            if(childToUpdate.Code != oldChild.Code)
-            {
-                File.Move(DestImgFolderPath + oldChild.Code + ".png",
-                    DestImgFolderPath + childToUpdate.Code + ".png");
-            }
-            */
             ChildListViewRedraw();
         }
 
@@ -169,7 +177,11 @@ namespace PicturesSoft
             //var childListIndex = childRep.GetChilds().IndexOf((Child)globalSelectedItem);
 
             //childRep.DeleteChild(childListIndex);
-            childRep.DeleteChild(childToDelete);
+            ChildRep.DeleteChild(childToDelete);
+
+            var imgToDeleteFilePath = DestImgFolderPath + "\\" + childToDelete.ImgName;
+            File.Delete(imgToDeleteFilePath);
+
             ChildListViewRedraw();
             NavBtwPagesTableLayoutRedraw();
         }
@@ -210,7 +222,7 @@ namespace PicturesSoft
             XAttribute keyAttr = new XAttribute("key", "catalog");
             propertyXElem.Add(keyAttr);
 
-            foreach (Group gr in groupRep.GetGroups())
+            foreach (Group gr in GroupRep.GetGroups())
             {
                 //create group element
                 XElement groupXElem = new XElement(xmlns + "group");
@@ -223,7 +235,7 @@ namespace PicturesSoft
                 groupXElem.Add(groupName);
                 groupXElem.Add(groupImgName);
 
-                foreach (Child ch in childRep.GetChildsBelongToGroup(gr.Id))
+                foreach (Child ch in ChildRep.GetChildsBelongToGroup(gr.Id))
                 {
                     //create good element
                     XElement goodXElem = new XElement(xmlns + "good");
@@ -271,7 +283,7 @@ namespace PicturesSoft
 
             int imgIndexCounter = 0;
 
-            foreach (Group gr in groupRep.GetGroups())
+            foreach (Group gr in GroupRep.GetGroups())
             {
                 //< filling image collection for groupListView
                 foreach (var imgFile in imageFiles)
@@ -307,7 +319,7 @@ namespace PicturesSoft
 
         private void ChildListViewRedraw()
         {
-            var childsListBelongToGroup = childRep.GetChildsBelongToGroup(groupOwner.Id);
+            var childsListBelongToGroup = ChildRep.GetChildsBelongToGroup(groupOwner.Id);
 
             if (this.childsListView.Items.Count != 0)
             {
@@ -398,7 +410,7 @@ namespace PicturesSoft
 
         private void NavBtwPagesTableLayoutRedraw()
         {
-            var childsListBelongToGroup = childRep.GetChildsBelongToGroup(groupOwner.Id);
+            var childsListBelongToGroup = ChildRep.GetChildsBelongToGroup(groupOwner.Id);
             int childsListBelongToGroupCount = childsListBelongToGroup.Count;
 
             int pageNavBtnCount = childsListBelongToGroupCount / 9;
@@ -456,20 +468,23 @@ namespace PicturesSoft
         private void DeleteAllChildsBelongToGroup()
         {
             var childsListBelongToGroup = 
-                childRep.GetChildsBelongToGroup(((Group)globalSelectedItem).Id);
+                ChildRep.GetChildsBelongToGroup(((Group)globalSelectedItem).Id);
 
             foreach (Child ch in childsListBelongToGroup)
             {
                 var indexOfItemToDelete =
-                    childRep.GetChilds().IndexOf(ch);
-                this.childRep.DeleteChild(ch, false);
+                    ChildRep.GetChilds().IndexOf(ch);
+                this.ChildRep.DeleteChild(ch, false);
+
+                var imgToDeleteFilePath = DestImgFolderPath + "\\" + ch.ImgName;
+                File.Delete(imgToDeleteFilePath);
             }
         }
 
         private void UpdateAllChildsBelongToGroup(Group groupToUpdate, Group oldGroup)
         {
             var childsListBelongToOldGroup =
-                childRep.GetChildsBelongToGroup(oldGroup.Id);
+                ChildRep.GetChildsBelongToGroup(oldGroup.Id);
 
             foreach (Child oldCh in childsListBelongToOldGroup)
             {
@@ -480,7 +495,7 @@ namespace PicturesSoft
                     groupToUpdate.Id,
                     oldCh.ImgName
                     );
-                this.childRep.UpdateChild(newCh, oldCh, false);
+                this.ChildRep.UpdateChild(newCh, oldCh, false);
             }
         }
 
@@ -492,20 +507,20 @@ namespace PicturesSoft
 
             if (globalSlctedItemType.Name.Equals("Group"))
             {
-                var tempGroupList = groupRep.GetGroups();
+                var tempGroupList = GroupRep.GetGroups();
                 indexOfObject = tempGroupList.IndexOf((Group)globalSelectedItem);
                 objectRepListLastIndex = tempGroupList.Count - 1;
             }
             else
             {
-                var tempChildList = groupRep.GetGroups();
-                indexOfObject = childRep.GetChildsBelongToGroup(groupOwner.Id)
-                                    .IndexOf((Child)globalSelectedItem);
+                var tempChildList = ChildRep.GetChildsBelongToGroup(groupOwner.Id);
+                indexOfObject = tempChildList .IndexOf((Child)globalSelectedItem);
                 objectRepListLastIndex = tempChildList.Count - 1;
             }
 
             //< Setting enabled move right
             //and move left button properties
+            
             if(indexOfObject > 0 && indexOfObject  < objectRepListLastIndex)
             {
                 this.moveObjLeftBtn.Enabled = true;
@@ -518,6 +533,7 @@ namespace PicturesSoft
             }
             else if(indexOfObject == objectRepListLastIndex)
             {
+                this.moveObjLeftBtn.Enabled = true;
                 this.moveObjRightBtn.Enabled = false;
             }
             //>
@@ -529,13 +545,29 @@ namespace PicturesSoft
                 this.moveObjUpBtn.Enabled = false;
                 this.moveObjDownBtn.Enabled = true;
             }
-                
-            if(indexOfObject % 9 == 6 || indexOfObject % 9 == 7 || indexOfObject % 9 == 8)
+            else if(indexOfObject % 9 == 6 || indexOfObject % 9 == 7 || indexOfObject % 9 == 8)
             {
                 this.moveObjUpBtn.Enabled = true;
                 this.moveObjDownBtn.Enabled = false;
             }
+            else
+            {
+                this.moveObjUpBtn.Enabled = true;
+                this.moveObjDownBtn.Enabled = true;
+            }
+
+            //additional conditions for moveObjDownBtn
+            //when programm meets the end of the list
+            if (objectRepListLastIndex - indexOfObject < 3)
+                this.moveObjDownBtn.Enabled = false;
             //>
+
+            //additional condition for all buttons
+            //if there is only one element in list
+            if (objectRepListLastIndex == indexOfObject && indexOfObject == 0)
+            {
+                this.moveObjectsBtnPanel.Enabled = false;
+            }
         }
 
         #endregion //Private helpers
@@ -545,7 +577,7 @@ namespace PicturesSoft
         private void groupsListView_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             var indexOfSelectedItem = groupsListView.SelectedIndices[0];
-            groupOwner = groupRep.GetGroups()[indexOfSelectedItem];
+            groupOwner = GroupRep.GetGroups()[indexOfSelectedItem];
 
             globalListViewRelatedPageNumber = 1;
 
@@ -573,7 +605,7 @@ namespace PicturesSoft
                 this.deleteSelectedBtn.Enabled = true;
 
                 var indexOfSelectedItem = groupsListView.SelectedIndices[0];
-                var selectedGroup = groupRep.GetGroups()[indexOfSelectedItem];
+                var selectedGroup = GroupRep.GetGroups()[indexOfSelectedItem];
                 this.globalSelectedItem = selectedGroup;
 
                 this.moveObjectsBtnPanel.Enabled = true;
@@ -605,8 +637,8 @@ namespace PicturesSoft
                 this.deleteSelectedBtn.Enabled = true;
 
                 var indexOfSelectedItem = 
-                    childRep.GetChilds().IndexOf((Child)childsListView.SelectedItems[0].Tag);
-                this.globalSelectedItem = childRep.GetChilds()[indexOfSelectedItem];
+                    ChildRep.GetChilds().IndexOf((Child)childsListView.SelectedItems[0].Tag);
+                this.globalSelectedItem = ChildRep.GetChilds()[indexOfSelectedItem];
 
                 this.moveObjectsBtnPanel.Enabled = true;
                 this.SetMoveObjBtnsEnabledProperty();
@@ -630,13 +662,14 @@ namespace PicturesSoft
 
             if (this.groupsListView.Visible)
             {
-                CreateAndEditGroupForm CrAnEdGrForm = new CreateAndEditGroupForm(workMode);
+                CreateAndEditGroupForm CrAnEdGrForm = 
+                    new CreateAndEditGroupForm(workMode, DestImgFolderPath);
                 CrAnEdGrForm.ShowDialog(this);
             }
             else if (this.childsListView.Visible)
             {
                 CreateAndEditChildForm CrAnEdChildForm =
-                    new CreateAndEditChildForm(workMode, groupOwner);
+                    new CreateAndEditChildForm(workMode, groupOwner, DestImgFolderPath);
                 CrAnEdChildForm.ShowDialog(this);
             }
 
@@ -659,7 +692,7 @@ namespace PicturesSoft
                     );  
 
                 CreateAndEditGroupForm CrAnEdGrForm = 
-                    new CreateAndEditGroupForm(workMode, groupToEdit);
+                    new CreateAndEditGroupForm(workMode, groupToEdit, DestImgFolderPath);
                 CrAnEdGrForm.ShowDialog(this);
             }
             else if(globalSlctedItemType.Name.Equals("Child"))
@@ -674,7 +707,7 @@ namespace PicturesSoft
                     );
 
                 CreateAndEditChildForm CrAnEdChildForm =
-                    new CreateAndEditChildForm(workMode, childToEdit);
+                    new CreateAndEditChildForm(workMode, childToEdit, DestImgFolderPath);
                 CrAnEdChildForm.ShowDialog(this);
             }
 
@@ -780,22 +813,106 @@ namespace PicturesSoft
 
         private void moveObjUpBtn_Click(object sender, EventArgs e)
         {
+            var globalSlctedItemType = globalSelectedItem.GetType();
 
+            if (globalSlctedItemType.Name.Equals("Group"))
+            {
+                int firstGroupIndexToSwap = 
+                    GroupRep.GetGroups().IndexOf((Group)globalSelectedItem);
+                int secondGroupIndexToSwap = firstGroupIndexToSwap - 3;
+
+                this.GroupRep.SwapGroups(firstGroupIndexToSwap, secondGroupIndexToSwap);
+                this.GroupListViewRedraw();
+            }
+            else if (globalSlctedItemType.Name.Equals("Child"))
+            {
+                int firstChildIndexToSwap =
+                    ChildRep.GetChilds().IndexOf((Child)globalSelectedItem);
+                int secondChildIndexToSwap = firstChildIndexToSwap - 3;
+
+                this.ChildRep.SwapChilds(firstChildIndexToSwap, secondChildIndexToSwap);
+                this.ChildListViewRedraw();
+            }
+
+            SetMoveObjBtnsEnabledProperty();
         }
 
         private void moveObjDownBtn_Click(object sender, EventArgs e)
         {
+            var globalSlctedItemType = globalSelectedItem.GetType();
 
+            if (globalSlctedItemType.Name.Equals("Group"))
+            {
+                int firstGroupIndexToSwap =
+                    GroupRep.GetGroups().IndexOf((Group)globalSelectedItem);
+                int secondGroupIndexToSwap = firstGroupIndexToSwap + 3;
+
+                this.GroupRep.SwapGroups(firstGroupIndexToSwap, secondGroupIndexToSwap);
+                this.GroupListViewRedraw();
+            }
+            else if (globalSlctedItemType.Name.Equals("Child"))
+            {
+                int firstChildIndexToSwap =
+                    ChildRep.GetChilds().IndexOf((Child)globalSelectedItem);
+                int secondChildIndexToSwap = firstChildIndexToSwap + 3;
+
+                this.ChildRep.SwapChilds(firstChildIndexToSwap, secondChildIndexToSwap);
+                this.ChildListViewRedraw();
+            }
+
+            SetMoveObjBtnsEnabledProperty();
         }
 
         private void moveObjLeftBtn_Click(object sender, EventArgs e)
         {
+            var globalSlctedItemType = globalSelectedItem.GetType();
 
+            if (globalSlctedItemType.Name.Equals("Group"))
+            {
+                int firstGroupIndexToSwap =
+                    GroupRep.GetGroups().IndexOf((Group)globalSelectedItem);
+                int secondGroupIndexToSwap = firstGroupIndexToSwap - 1;
+
+                this.GroupRep.SwapGroups(firstGroupIndexToSwap, secondGroupIndexToSwap);
+                this.GroupListViewRedraw();
+            }
+            else if (globalSlctedItemType.Name.Equals("Child"))
+            {
+                int firstChildIndexToSwap =
+                    ChildRep.GetChilds().IndexOf((Child)globalSelectedItem);
+                int secondChildIndexToSwap = firstChildIndexToSwap - 1;
+
+                this.ChildRep.SwapChilds(firstChildIndexToSwap, secondChildIndexToSwap);
+                this.ChildListViewRedraw();
+            }
+
+            SetMoveObjBtnsEnabledProperty();
         }
 
         private void moveObjRightBtn_Click(object sender, EventArgs e)
         {
+            var globalSlctedItemType = globalSelectedItem.GetType();
 
+            if (globalSlctedItemType.Name.Equals("Group"))
+            {
+                int firstGroupIndexToSwap =
+                    GroupRep.GetGroups().IndexOf((Group)globalSelectedItem);
+                int secondGroupIndexToSwap = firstGroupIndexToSwap + 1;
+
+                this.GroupRep.SwapGroups(firstGroupIndexToSwap, secondGroupIndexToSwap);
+                this.GroupListViewRedraw();
+            }
+            else if (globalSlctedItemType.Name.Equals("Child"))
+            {
+                int firstChildIndexToSwap =
+                    ChildRep.GetChilds().IndexOf((Child)globalSelectedItem);
+                int secondChildIndexToSwap = firstChildIndexToSwap + 1;
+
+                this.ChildRep.SwapChilds(firstChildIndexToSwap, secondChildIndexToSwap);
+                this.ChildListViewRedraw();
+            }
+
+            SetMoveObjBtnsEnabledProperty();
         }
 
         #endregion //Move objects buttons Events
