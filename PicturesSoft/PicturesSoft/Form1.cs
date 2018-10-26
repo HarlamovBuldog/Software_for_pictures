@@ -576,6 +576,9 @@ namespace PicturesSoft
 
         private void groupsListView_MouseDoubleClick(object sender, MouseEventArgs e)
         {
+            if (groupsListView.SelectedItems.Count == 0)
+                return;
+
             var indexOfSelectedItem = groupsListView.SelectedIndices[0];
             groupOwner = GroupRep.GetGroups()[indexOfSelectedItem];
 
@@ -623,6 +626,30 @@ namespace PicturesSoft
         #endregion //groupListView Events
 
         #region childsListView Events
+
+        private void childsListView_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (childsListView.SelectedItems.Count == 0)
+                return;
+
+            WorkMode workMode = new WorkMode() { WorkType = WorkModeType.Edit };
+
+            Child oldChild = (Child)globalSelectedItem;
+            Child childToEdit = Child.CreateChild(
+                oldChild.Code,
+                oldChild.Name,
+                oldChild.SimpleName,
+                oldChild.GroupCode,
+                oldChild.ImgName
+                );
+
+            CreateAndEditChildForm CrAnEdChildForm =
+                new CreateAndEditChildForm(workMode, childToEdit, DestImgFolderPath);
+            CrAnEdChildForm.ShowDialog(this);
+
+            this.editSelectedBtn.Enabled = false;
+            this.deleteSelectedBtn.Enabled = false;
+        }
 
         private void childsListView_VisibleChanged(object sender, EventArgs e)
         {

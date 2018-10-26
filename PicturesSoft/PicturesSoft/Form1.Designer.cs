@@ -81,6 +81,7 @@
             this.childsListView.UseCompatibleStateImageBehavior = false;
             this.childsListView.ItemSelectionChanged += new System.Windows.Forms.ListViewItemSelectionChangedEventHandler(this.childsListView_ItemSelectionChanged);
             this.childsListView.VisibleChanged += new System.EventHandler(this.childsListView_VisibleChanged);
+            this.childsListView.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.childsListView_MouseDoubleClick);
             // 
             // createNewItemBtn
             // 
