@@ -126,9 +126,6 @@ namespace PicturesSoft
 
                 if(!SourceFullFileName.Equals(destFolderName))
                 {
-                    string oldFileName =
-                        InitImgPath.Substring(InitImgPath.LastIndexOf("\\") + 1);
-
                     if (!imgExtension.Equals(".png"))
                     {
                         Image img;
@@ -156,9 +153,15 @@ namespace PicturesSoft
                             File.Copy(SourceFullFileName, destFolderName);
                     }
 
-                    if(!SourceFullFileName.Contains(PredeterminedDestImgFolderPath)
-                        && !oldFileName.Equals(fileName))
-                        File.Delete(InitImgPath);
+                    if (WorkMode.WorkType.Equals(WorkModeType.Edit))
+                    {
+                        string oldFileName =
+                        InitImgPath.Substring(InitImgPath.LastIndexOf("\\") + 1);
+
+                        if (!SourceFullFileName.Contains(PredeterminedDestImgFolderPath)
+                            && !oldFileName.Equals(fileName))
+                            File.Delete(InitImgPath);
+                    }        
                 }     
             }
             else //oldMode
