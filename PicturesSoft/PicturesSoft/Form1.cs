@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using Renci.SshNet;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -13,8 +15,6 @@ namespace PicturesSoft
     {
         #region private fields
 
-        //private GroupRepository groupRep;
-        //private ChildRepository childRep;
         private object globalSelectedItem;
         private Group groupOwner;
 
@@ -38,8 +38,8 @@ namespace PicturesSoft
             InitializeComponent();
 
             //Dialog for setting pathes
-            AppSettings appSettingsDialog = new AppSettings();
-            var result = appSettingsDialog.ShowDialog(this);
+            //AppSettings appSettingsDialog = new AppSettings();
+            //var result = appSettingsDialog.ShowDialog(this);
 
             //if (result == DialogResult.Cancel)
              //   this.Close();
@@ -52,8 +52,8 @@ namespace PicturesSoft
             //string childXmlFilePath = Path.Combine(Path.GetDirectoryName(
             //         Assembly.GetExecutingAssembly().Location), @"Data\Childs.xml");
 
-            //XmlCnfgFilePath = "D:\\Download\\crystal-cash\\config\\plugins\\weightCatalog-xml-config.xml";
-            //DestImgFolderPath = "D:\\Download\\crystal-cash\\images";
+            XmlCnfgFilePath = "D:\\Download\\crystal-cash\\config\\plugins\\weightCatalog-xml-config.xml";
+            DestImgFolderPath = "D:\\Download\\crystal-cash\\images";
 
             AppWorkMode = new WorkMode() { WorkType = WorkModeType.LoadFromFinalXml };
 
@@ -72,6 +72,8 @@ namespace PicturesSoft
             //filling group listview
             GroupListViewRedraw();
 
+            MainMenuStripInit();
+
             /*
             //filling listbox
             this.listBox1.Items.AddRange(groupRep.GetGroups().ToArray<Group>());
@@ -87,6 +89,30 @@ namespace PicturesSoft
             this.moveForwardBetweenPagesBtn.Enabled = false;
 
             this.moveObjectsBtnPanel.Enabled = false;
+        }
+
+        private void MainMenuStripInit()
+        {
+            //root menu item strip creation
+            ToolStripMenuItem Configuration =
+                new ToolStripMenuItem("Настройки");
+            
+            ToolStripMenuItem downloadServerConfig =
+                new ToolStripMenuItem("Настройки сервера-справочника");
+
+            //adding click event for menu strip item
+            downloadServerConfig.Click += downloadServerConfigMenuItem_Click;
+
+            //adding downloadServerConfig to root Configuration
+            Configuration.DropDownItems.Add(downloadServerConfig);
+
+            //adding Configuration to MainMenuStripObject itself
+            this.MainMenuStrip.Items.Add(Configuration);
+        }
+
+        void downloadServerConfigMenuItem_Click(object sender, EventArgs e)
+        {
+            ConnectToServerAndUpdateFile();
         }
 
         #endregion //Form1 creation
@@ -266,6 +292,13 @@ namespace PicturesSoft
         }
 
         #region Private helpers
+
+        private void ConnectToServerAndUpdateFile()
+        {
+            var ConnToServAndUpFile = new ServerConnectionInfoForm();
+
+            ConnToServAndUpFile.ShowDialog(this);
+        }
 
         private void GroupListViewRedraw()
         {
@@ -943,5 +976,51 @@ namespace PicturesSoft
         }
 
         #endregion //Move objects buttons Events
+
+        private void SSHConnectBtn_Click(object sender, EventArgs e)
+        {
+            using (var client = new Renci.SshNet.ScpClient("192.168.0.224", 22, "tc", "324012"))
+            {
+                client.Connect();
+                client.Download("/home/tc/storage/crystal-cash/config/plugins/weightCatalog-xml-config.xml",
+                    new FileInfo(
+                        Path.Combine(Path.GetDirectoryName(
+                        Assembly.GetExecutingAssembly().Location), @"Data\weightCatalog-xml-config.xml"))
+                        );
+                client.Disconnect();
+            }          
+        }
+
+        private void makeTreeBtn_Click(object sender, EventArgs e)
+        {
+            GetListOfShopsWithCashBoxes();
+        }
+
+        private List<Shop> GetListOfShopsWithCashBoxes()
+        {
+            List<Shop> shops = new List<Shop>();
+
+            string filepath = Path.Combine(Path.GetDirectoryName(
+                        Assembly.GetExecutingAssembly().Location), @"Data\topology.structure");
+
+            string result = string.Empty;
+            using (StreamReader r = new StreamReader(filepath))
+            {
+                var json = r.ReadToEnd();
+                var jobj = JObject.Parse(json);
+
+                
+
+                foreach (var item in jobj.Properties())
+                {
+                    item.Value = item.Value.ToString().Replace("v1", "v2");
+                }
+                result = jobj.ToString();
+                Console.WriteLine(result);
+            }
+            File.WriteAllText(filepath, result);
+
+            return shops;
+        }
     }
 }

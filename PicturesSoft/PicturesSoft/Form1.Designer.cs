@@ -44,6 +44,10 @@
             this.moveObjRightBtn = new System.Windows.Forms.Button();
             this.moveObjDownBtn = new System.Windows.Forms.Button();
             this.moveObjUpBtn = new System.Windows.Forms.Button();
+            this.SSHConnectBtn = new System.Windows.Forms.Button();
+            this.mainMenuStrip = new System.Windows.Forms.MenuStrip();
+            this.cashBoxesTreeView = new System.Windows.Forms.TreeView();
+            this.makeTreeBtn = new System.Windows.Forms.Button();
             this.moveObjectsBtnPanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -115,7 +119,7 @@
             // 
             // createFinalXmlBtn
             // 
-            this.createFinalXmlBtn.Location = new System.Drawing.Point(12, 12);
+            this.createFinalXmlBtn.Location = new System.Drawing.Point(713, 432);
             this.createFinalXmlBtn.Name = "createFinalXmlBtn";
             this.createFinalXmlBtn.Size = new System.Drawing.Size(75, 23);
             this.createFinalXmlBtn.TabIndex = 8;
@@ -214,11 +218,48 @@
             this.moveObjUpBtn.UseVisualStyleBackColor = true;
             this.moveObjUpBtn.Click += new System.EventHandler(this.moveObjUpBtn_Click);
             // 
+            // SSHConnectBtn
+            // 
+            this.SSHConnectBtn.Location = new System.Drawing.Point(273, 27);
+            this.SSHConnectBtn.Name = "SSHConnectBtn";
+            this.SSHConnectBtn.Size = new System.Drawing.Size(110, 23);
+            this.SSHConnectBtn.TabIndex = 13;
+            this.SSHConnectBtn.Text = "Get Xml Config";
+            this.SSHConnectBtn.UseVisualStyleBackColor = true;
+            this.SSHConnectBtn.Click += new System.EventHandler(this.SSHConnectBtn_Click);
+            // 
+            // mainMenuStrip
+            // 
+            this.mainMenuStrip.Location = new System.Drawing.Point(0, 0);
+            this.mainMenuStrip.Name = "mainMenuStrip";
+            this.mainMenuStrip.Size = new System.Drawing.Size(800, 24);
+            this.mainMenuStrip.TabIndex = 16;
+            // 
+            // cashBoxesTreeView
+            // 
+            this.cashBoxesTreeView.Location = new System.Drawing.Point(13, 96);
+            this.cashBoxesTreeView.Name = "cashBoxesTreeView";
+            this.cashBoxesTreeView.Size = new System.Drawing.Size(121, 294);
+            this.cashBoxesTreeView.TabIndex = 17;
+            // 
+            // makeTreeBtn
+            // 
+            this.makeTreeBtn.Location = new System.Drawing.Point(13, 60);
+            this.makeTreeBtn.Name = "makeTreeBtn";
+            this.makeTreeBtn.Size = new System.Drawing.Size(75, 23);
+            this.makeTreeBtn.TabIndex = 18;
+            this.makeTreeBtn.Text = "Make tree";
+            this.makeTreeBtn.UseVisualStyleBackColor = true;
+            this.makeTreeBtn.Click += new System.EventHandler(this.makeTreeBtn_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 467);
+            this.Controls.Add(this.makeTreeBtn);
+            this.Controls.Add(this.cashBoxesTreeView);
+            this.Controls.Add(this.SSHConnectBtn);
             this.Controls.Add(this.moveObjectsBtnPanel);
             this.Controls.Add(this.moveForwardBetweenPagesBtn);
             this.Controls.Add(this.moveBackBetweenPagesBtn);
@@ -230,12 +271,15 @@
             this.Controls.Add(this.createNewItemBtn);
             this.Controls.Add(this.groupsListView);
             this.Controls.Add(this.BackToGroupsBtn);
+            this.Controls.Add(this.mainMenuStrip);
+            this.MainMenuStrip = this.mainMenuStrip;
             this.Name = "Form1";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.moveObjectsBtnPanel.ResumeLayout(false);
             this.moveObjectsBtnPanel.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -256,6 +300,10 @@
         private System.Windows.Forms.Button moveObjDownBtn;
         private System.Windows.Forms.Button moveObjUpBtn;
         private System.Windows.Forms.Label moveObjectsPanelLabel;
+        private System.Windows.Forms.Button SSHConnectBtn;
+        private System.Windows.Forms.MenuStrip mainMenuStrip;
+        private System.Windows.Forms.TreeView cashBoxesTreeView;
+        private System.Windows.Forms.Button makeTreeBtn;
     }
 }
 
