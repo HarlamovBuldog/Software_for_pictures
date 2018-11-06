@@ -53,7 +53,7 @@
             // 
             // BackToGroupsBtn
             // 
-            this.BackToGroupsBtn.Location = new System.Drawing.Point(563, 170);
+            this.BackToGroupsBtn.Location = new System.Drawing.Point(710, 169);
             this.BackToGroupsBtn.Name = "BackToGroupsBtn";
             this.BackToGroupsBtn.Size = new System.Drawing.Size(89, 23);
             this.BackToGroupsBtn.TabIndex = 2;
@@ -64,7 +64,7 @@
             // groupsListView
             // 
             this.groupsListView.HideSelection = false;
-            this.groupsListView.Location = new System.Drawing.Point(148, 60);
+            this.groupsListView.Location = new System.Drawing.Point(295, 59);
             this.groupsListView.MultiSelect = false;
             this.groupsListView.Name = "groupsListView";
             this.groupsListView.Size = new System.Drawing.Size(408, 330);
@@ -77,7 +77,7 @@
             // childsListView
             // 
             this.childsListView.HideSelection = false;
-            this.childsListView.Location = new System.Drawing.Point(148, 60);
+            this.childsListView.Location = new System.Drawing.Point(295, 59);
             this.childsListView.MultiSelect = false;
             this.childsListView.Name = "childsListView";
             this.childsListView.Size = new System.Drawing.Size(408, 330);
@@ -89,7 +89,7 @@
             // 
             // createNewItemBtn
             // 
-            this.createNewItemBtn.Location = new System.Drawing.Point(563, 58);
+            this.createNewItemBtn.Location = new System.Drawing.Point(710, 57);
             this.createNewItemBtn.Name = "createNewItemBtn";
             this.createNewItemBtn.Size = new System.Drawing.Size(75, 23);
             this.createNewItemBtn.TabIndex = 5;
@@ -99,7 +99,7 @@
             // 
             // editSelectedBtn
             // 
-            this.editSelectedBtn.Location = new System.Drawing.Point(563, 87);
+            this.editSelectedBtn.Location = new System.Drawing.Point(710, 86);
             this.editSelectedBtn.Name = "editSelectedBtn";
             this.editSelectedBtn.Size = new System.Drawing.Size(75, 23);
             this.editSelectedBtn.TabIndex = 6;
@@ -109,7 +109,7 @@
             // 
             // deleteSelectedBtn
             // 
-            this.deleteSelectedBtn.Location = new System.Drawing.Point(563, 116);
+            this.deleteSelectedBtn.Location = new System.Drawing.Point(710, 115);
             this.deleteSelectedBtn.Name = "deleteSelectedBtn";
             this.deleteSelectedBtn.Size = new System.Drawing.Size(75, 23);
             this.deleteSelectedBtn.TabIndex = 7;
@@ -119,7 +119,7 @@
             // 
             // createFinalXmlBtn
             // 
-            this.createFinalXmlBtn.Location = new System.Drawing.Point(713, 432);
+            this.createFinalXmlBtn.Location = new System.Drawing.Point(860, 431);
             this.createFinalXmlBtn.Name = "createFinalXmlBtn";
             this.createFinalXmlBtn.Size = new System.Drawing.Size(75, 23);
             this.createFinalXmlBtn.TabIndex = 8;
@@ -131,7 +131,7 @@
             // 
             this.navBtwPagesTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.navBtwPagesTableLayout.GrowStyle = System.Windows.Forms.TableLayoutPanelGrowStyle.AddColumns;
-            this.navBtwPagesTableLayout.Location = new System.Drawing.Point(204, 392);
+            this.navBtwPagesTableLayout.Location = new System.Drawing.Point(351, 391);
             this.navBtwPagesTableLayout.Name = "navBtwPagesTableLayout";
             this.navBtwPagesTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.navBtwPagesTableLayout.Size = new System.Drawing.Size(135, 45);
@@ -139,7 +139,7 @@
             // 
             // moveBackBetweenPagesBtn
             // 
-            this.moveBackBetweenPagesBtn.Location = new System.Drawing.Point(149, 392);
+            this.moveBackBetweenPagesBtn.Location = new System.Drawing.Point(296, 391);
             this.moveBackBetweenPagesBtn.Name = "moveBackBetweenPagesBtn";
             this.moveBackBetweenPagesBtn.Size = new System.Drawing.Size(49, 46);
             this.moveBackBetweenPagesBtn.TabIndex = 10;
@@ -149,7 +149,7 @@
             // 
             // moveForwardBetweenPagesBtn
             // 
-            this.moveForwardBetweenPagesBtn.Location = new System.Drawing.Point(508, 392);
+            this.moveForwardBetweenPagesBtn.Location = new System.Drawing.Point(655, 391);
             this.moveForwardBetweenPagesBtn.Name = "moveForwardBetweenPagesBtn";
             this.moveForwardBetweenPagesBtn.Size = new System.Drawing.Size(48, 46);
             this.moveForwardBetweenPagesBtn.TabIndex = 11;
@@ -164,7 +164,7 @@
             this.moveObjectsBtnPanel.Controls.Add(this.moveObjRightBtn);
             this.moveObjectsBtnPanel.Controls.Add(this.moveObjDownBtn);
             this.moveObjectsBtnPanel.Controls.Add(this.moveObjUpBtn);
-            this.moveObjectsBtnPanel.Location = new System.Drawing.Point(577, 239);
+            this.moveObjectsBtnPanel.Location = new System.Drawing.Point(724, 238);
             this.moveObjectsBtnPanel.Name = "moveObjectsBtnPanel";
             this.moveObjectsBtnPanel.Size = new System.Drawing.Size(211, 121);
             this.moveObjectsBtnPanel.TabIndex = 12;
@@ -220,7 +220,7 @@
             // 
             // SSHConnectBtn
             // 
-            this.SSHConnectBtn.Location = new System.Drawing.Point(273, 27);
+            this.SSHConnectBtn.Location = new System.Drawing.Point(420, 26);
             this.SSHConnectBtn.Name = "SSHConnectBtn";
             this.SSHConnectBtn.Size = new System.Drawing.Size(110, 23);
             this.SSHConnectBtn.TabIndex = 13;
@@ -232,19 +232,19 @@
             // 
             this.mainMenuStrip.Location = new System.Drawing.Point(0, 0);
             this.mainMenuStrip.Name = "mainMenuStrip";
-            this.mainMenuStrip.Size = new System.Drawing.Size(800, 24);
+            this.mainMenuStrip.Size = new System.Drawing.Size(1046, 24);
             this.mainMenuStrip.TabIndex = 16;
             // 
             // cashBoxesTreeView
             // 
-            this.cashBoxesTreeView.Location = new System.Drawing.Point(13, 96);
+            this.cashBoxesTreeView.Location = new System.Drawing.Point(48, 95);
             this.cashBoxesTreeView.Name = "cashBoxesTreeView";
-            this.cashBoxesTreeView.Size = new System.Drawing.Size(121, 294);
+            this.cashBoxesTreeView.Size = new System.Drawing.Size(233, 294);
             this.cashBoxesTreeView.TabIndex = 17;
             // 
             // makeTreeBtn
             // 
-            this.makeTreeBtn.Location = new System.Drawing.Point(13, 60);
+            this.makeTreeBtn.Location = new System.Drawing.Point(160, 59);
             this.makeTreeBtn.Name = "makeTreeBtn";
             this.makeTreeBtn.Size = new System.Drawing.Size(75, 23);
             this.makeTreeBtn.TabIndex = 18;
@@ -256,7 +256,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 467);
+            this.ClientSize = new System.Drawing.Size(1046, 467);
             this.Controls.Add(this.makeTreeBtn);
             this.Controls.Add(this.cashBoxesTreeView);
             this.Controls.Add(this.SSHConnectBtn);
