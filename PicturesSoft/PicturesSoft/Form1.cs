@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Renci.SshNet;
 using System;
 using System.Collections.Generic;
@@ -993,32 +994,124 @@ namespace PicturesSoft
 
         private void makeTreeBtn_Click(object sender, EventArgs e)
         {
-            GetListOfShopsWithCashBoxes();
+            List<Shop> shops = new List<Shop>(GetListOfShopsWithCashBoxes());
+
+            PopulateTreeView(shops);
+        }
+
+        private void PopulateTreeView(List<Shop> shops)
+        {
+            this.cashBoxesTreeView.Nodes.Clear();
+            this.cashBoxesTreeView.BeginUpdate();
+
+            int counter = 0;
+
+            foreach(Shop shop in shops)
+            {
+                this.cashBoxesTreeView.Nodes.Add("Shop " + shop.Code);
+
+                foreach(CashBox cashBox in shop.CashBoxes)
+                {
+                    this.cashBoxesTreeView.Nodes[counter].Nodes
+                        .Add("CashBox " + cashBox.Number + ' ' + cashBox.IpAddress);
+                }
+
+                counter++;
+            }
+
+            this.cashBoxesTreeView.EndUpdate();
+            this.cashBoxesTreeView.Refresh();
         }
 
         private List<Shop> GetListOfShopsWithCashBoxes()
         {
+            //JsonConvert.DeserializeObject<Shop>()
             List<Shop> shops = new List<Shop>();
+            List<CashBox> cashBoxes = new List<CashBox>();
+            List<TopologyTemp> topologyTemps;
 
             string filepath = Path.Combine(Path.GetDirectoryName(
                         Assembly.GetExecutingAssembly().Location), @"Data\topology.structure");
 
-            string result = string.Empty;
+            string json;
+
             using (StreamReader r = new StreamReader(filepath))
             {
-                var json = r.ReadToEnd();
-                var jobj = JObject.Parse(json);
-
-                
-
-                foreach (var item in jobj.Properties())
-                {
-                    item.Value = item.Value.ToString().Replace("v1", "v2");
-                }
-                result = jobj.ToString();
-                Console.WriteLine(result);
+                json = r.ReadToEnd();
+                topologyTemps = new List<TopologyTemp>(JsonConvert.DeserializeObject<List<TopologyTemp>>(json));
             }
-            File.WriteAllText(filepath, result);
+
+            //string uniqShopCode = String.Empty;
+
+            int indexOfScndComa;
+            int indexofThirdComa;
+            string currentShopCode = String.Empty;
+
+            List<string> shopCodesCheck = new List<string>();
+
+            foreach (var tplg in topologyTemps)
+            {
+                if (tplg.type.Equals("CENTRUM"))
+                    continue;
+
+                var result = tplg.topologyAddress
+                      .Select((ch, index) => new { ch, index })
+                      .Where(x => x.ch == '.')
+                      .Skip(1)
+                      .FirstOrDefault();
+
+                indexOfScndComa = result.index;
+
+                indexofThirdComa = tplg.topologyAddress.LastIndexOf('.');
+
+                currentShopCode = tplg.topologyAddress
+                    .Substring(indexOfScndComa + 1, indexofThirdComa - indexOfScndComa - 1);
+
+                if(shopCodesCheck.Count != 0)
+                {
+                    if(!shopCodesCheck.Contains(currentShopCode))
+                    {
+                        shopCodesCheck.Add(currentShopCode);
+                        shops.Add(new Shop()
+                        {
+                            Code = String.Copy(currentShopCode)
+                        });
+                    }
+                }
+                else
+                {
+                    shopCodesCheck.Add(currentShopCode);
+                    shops.Add(new Shop()
+                    {
+                        Code = String.Copy(currentShopCode)
+                    });
+                }
+
+                cashBoxes.Add(new CashBox()
+                {
+                    IpAddress = tplg.topologyPointIP,
+                    Number = tplg.topologyAddress.Substring(indexofThirdComa + 1),
+                    ShopCode = String.Copy(currentShopCode)
+                });
+            }
+
+            foreach(Shop shop in shops)
+            {
+                foreach(CashBox cashBox in cashBoxes)
+                {
+                    if(shop.Code.Equals(cashBox.ShopCode))
+                    {
+                        shop.CashBoxes.Add(new CashBox()
+                        {
+                            IpAddress = String.Copy(cashBox.IpAddress),
+                            Number = String.Copy(cashBox.Number),
+                            ShopCode = String.Copy(cashBox.ShopCode)
+                        });
+
+                        //cashBoxes.Remove(cashBox);
+                    }
+                }
+            }
 
             return shops;
         }
