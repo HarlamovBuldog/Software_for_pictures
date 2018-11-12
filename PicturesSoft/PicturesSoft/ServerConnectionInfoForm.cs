@@ -31,13 +31,16 @@ namespace PicturesSoft
                             );
                     client.Disconnect();
                 }
+
+                MessageBox.Show("Файл успешно загружен и готов к работе!", "Информация",
+                    MessageBoxButtons.OK);
+                this.Close();
             }
             catch(Exception ex)
             {
-                MessageBox.Show(ex.Message);
-            }
-
-            this.Close();
+                MessageBox.Show(ex.Message + "\nПроблемы с подключением. Проверьте работопоспособность" +
+                    " сервера и правильность введенных данных", "Ошибка", MessageBoxButtons.OK);
+            } 
         }
     }
 }

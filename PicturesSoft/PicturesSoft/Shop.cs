@@ -15,5 +15,10 @@ namespace PicturesSoft
         public string Address { get; set; }
 
         public List<CashBox> CashBoxes { get; set; } = new List<CashBox>();
+
+        public override string ToString()
+        {
+            return String.Format("{0}", Name);
+        }
     }
 }

@@ -128,7 +128,7 @@
             this.Controls.Add(this.portTextBox);
             this.Controls.Add(this.ipTextBox);
             this.Name = "ServerConnectionInfoForm";
-            this.Text = "ServerConnectionInfoForm";
+            this.Text = "Настройка сервера-справочника";
             this.ResumeLayout(false);
             this.PerformLayout();
 
