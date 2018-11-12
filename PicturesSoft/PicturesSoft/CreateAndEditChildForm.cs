@@ -68,18 +68,37 @@ namespace PicturesSoft
 
         private void opnFileDlgChildBtn_Click(object sender, EventArgs e)
         {
-            //string openFileDialogFilter = "Image files (*.png;*.jpeg)|*.png;*.jpeg";
             string openFileDialogFilter =
                "Image files (*.png;*.jpeg;*.jpg;*.gif;*.bmp)|*.png;*.jpeg;*.jpg;*.gif;*.bmp";
-            DialogInvoker dialogInvoker = new DialogInvoker(openFileDialogFilter);
 
-            if (dialogInvoker.Invoke() == DialogResult.OK)
+            do
             {
-                //System folder path of selected item (full source file name)
-                SourceFullFileName = dialogInvoker.InvokeDialog.FileName;
-                this.childImgPathTextBox.Text = 
-                    SourceFullFileName.Substring(SourceFullFileName.LastIndexOf("\\") + 1);
+                DialogInvoker dialogInvoker = new DialogInvoker(openFileDialogFilter);
+
+                if (dialogInvoker.Invoke() == DialogResult.OK)
+                {
+                    FileInfo fileInfo = new FileInfo(dialogInvoker.InvokeDialog.FileName);
+                    long fileSize = fileInfo.Length;
+
+                    if (fileSize < 1024000)
+                    {
+                        //System folder path of selected item (full source file name)
+                        SourceFullFileName = dialogInvoker.InvokeDialog.FileName;
+                        this.childImgPathTextBox.Text =
+                            SourceFullFileName.Substring(SourceFullFileName.LastIndexOf("\\") + 1);
+                        break;
+                    }
+                    else
+                    {
+                        MessageBox.Show("Размер изображения больше 1 мб. Выберите другой файл или измените " +
+                            "текущий файл, чтобы он соответствовал требованиям", "Внимание",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                }
+                else
+                    break;
             }
+            while (true);
         }
 
         private void CreateAndEditChildCancelBtn_Click(object sender, EventArgs e)
@@ -91,19 +110,6 @@ namespace PicturesSoft
         {
             if (ValidateForm() == false)
                 return;
-            /*
-            var childImgPathTextBoxString = this.childImgPathTextBox.Text;
-
-            //System folder path of selected item (full source file name)
-            string sourceFileName = childImgPathTextBoxString;
-
-            //adding PredeterminedDestImgFolderPath to sourceFileName
-            if (!childImgPathTextBoxString.Contains("\\"))
-            {
-                sourceFileName = PredeterminedDestImgFolderPath + 
-                    "\\" + childImgPathTextBoxString;
-            }
-            */
 
             //Get image extension
             string imgExtension = SourceFullFileName.Substring(SourceFullFileName.LastIndexOf('.'));
