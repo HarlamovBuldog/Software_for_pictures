@@ -46,8 +46,8 @@
             this.moveObjUpBtn = new System.Windows.Forms.Button();
             this.SSHConnectBtn = new System.Windows.Forms.Button();
             this.mainMenuStrip = new System.Windows.Forms.MenuStrip();
-            this.cashBoxesTreeView = new System.Windows.Forms.TreeView();
-            this.makeTreeBtn = new System.Windows.Forms.Button();
+            this.shopListComboBox = new System.Windows.Forms.ComboBox();
+            this.cashesCheckedListBox = new System.Windows.Forms.CheckedListBox();
             this.moveObjectsBtnPanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -235,30 +235,31 @@
             this.mainMenuStrip.Size = new System.Drawing.Size(1046, 24);
             this.mainMenuStrip.TabIndex = 16;
             // 
-            // cashBoxesTreeView
+            // shopListComboBox
             // 
-            this.cashBoxesTreeView.Location = new System.Drawing.Point(48, 95);
-            this.cashBoxesTreeView.Name = "cashBoxesTreeView";
-            this.cashBoxesTreeView.Size = new System.Drawing.Size(233, 294);
-            this.cashBoxesTreeView.TabIndex = 17;
+            this.shopListComboBox.FormattingEnabled = true;
+            this.shopListComboBox.Location = new System.Drawing.Point(33, 86);
+            this.shopListComboBox.Name = "shopListComboBox";
+            this.shopListComboBox.Size = new System.Drawing.Size(202, 21);
+            this.shopListComboBox.TabIndex = 20;
+            this.shopListComboBox.Text = "Выберите магазин...";
+            this.shopListComboBox.SelectedIndexChanged += new System.EventHandler(this.shopListComboBox_SelectedIndexChanged);
             // 
-            // makeTreeBtn
+            // cashesCheckedListBox
             // 
-            this.makeTreeBtn.Location = new System.Drawing.Point(160, 59);
-            this.makeTreeBtn.Name = "makeTreeBtn";
-            this.makeTreeBtn.Size = new System.Drawing.Size(75, 23);
-            this.makeTreeBtn.TabIndex = 18;
-            this.makeTreeBtn.Text = "Make tree";
-            this.makeTreeBtn.UseVisualStyleBackColor = true;
-            this.makeTreeBtn.Click += new System.EventHandler(this.makeTreeBtn_Click);
+            this.cashesCheckedListBox.FormattingEnabled = true;
+            this.cashesCheckedListBox.Location = new System.Drawing.Point(33, 115);
+            this.cashesCheckedListBox.Name = "cashesCheckedListBox";
+            this.cashesCheckedListBox.Size = new System.Drawing.Size(202, 409);
+            this.cashesCheckedListBox.TabIndex = 21;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1046, 467);
-            this.Controls.Add(this.makeTreeBtn);
-            this.Controls.Add(this.cashBoxesTreeView);
+            this.ClientSize = new System.Drawing.Size(1046, 551);
+            this.Controls.Add(this.cashesCheckedListBox);
+            this.Controls.Add(this.shopListComboBox);
             this.Controls.Add(this.SSHConnectBtn);
             this.Controls.Add(this.moveObjectsBtnPanel);
             this.Controls.Add(this.moveForwardBetweenPagesBtn);
@@ -302,8 +303,8 @@
         private System.Windows.Forms.Label moveObjectsPanelLabel;
         private System.Windows.Forms.Button SSHConnectBtn;
         private System.Windows.Forms.MenuStrip mainMenuStrip;
-        private System.Windows.Forms.TreeView cashBoxesTreeView;
-        private System.Windows.Forms.Button makeTreeBtn;
+        private System.Windows.Forms.ComboBox shopListComboBox;
+        private System.Windows.Forms.CheckedListBox cashesCheckedListBox;
     }
 }
 

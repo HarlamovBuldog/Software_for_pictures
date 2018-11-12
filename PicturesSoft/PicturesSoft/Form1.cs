@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Npgsql;
 using Newtonsoft.Json.Linq;
 using Renci.SshNet;
 using System;
@@ -9,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Xml.Linq;
+using System.Data;
 
 namespace PicturesSoft
 {
@@ -25,10 +27,12 @@ namespace PicturesSoft
 
         public string XmlCnfgFilePath { get; set; }
         public string DestImgFolderPath { get; set; }
+        public string LocalCatalogFilePath { get; set; }
         public WorkMode AppWorkMode { get; set; }
         public int globalListViewRelatedPageNumber { get; private set; }
         public ChildRepository ChildRep { get; private set; }
         public GroupRepository GroupRep { get; private set; }
+        public List<Shop> ListOfShopsWithCashBoxes { get; private set; } = new List<Shop>();
 
         #endregion //public properties
 
@@ -38,23 +42,43 @@ namespace PicturesSoft
         {
             InitializeComponent();
 
+            /*
             //Dialog for setting pathes
-            //AppSettings appSettingsDialog = new AppSettings();
-            //var result = appSettingsDialog.ShowDialog(this);
+            AppSettings appSettingsDialog = new AppSettings();
+            var result = appSettingsDialog.ShowDialog(this);
 
-            //if (result == DialogResult.Cancel)
-             //   this.Close();
+            if (result == DialogResult.Cancel)
+                this.Close();
 
             //Groups.xml file path
-            //string groupXmlFilePath = Path.Combine(Path.GetDirectoryName(
-            //        Assembly.GetExecutingAssembly().Location), @"Data\Groups.xml");
+            string groupXmlFilePath = Path.Combine(Path.GetDirectoryName(
+                    Assembly.GetExecutingAssembly().Location), @"Data\Groups.xml");
 
             //Childs.xml file path
-            //string childXmlFilePath = Path.Combine(Path.GetDirectoryName(
-            //         Assembly.GetExecutingAssembly().Location), @"Data\Childs.xml");
+            string childXmlFilePath = Path.Combine(Path.GetDirectoryName(
+                     Assembly.GetExecutingAssembly().Location), @"Data\Childs.xml");
+            
 
-            XmlCnfgFilePath = "D:\\Download\\crystal-cash\\config\\plugins\\weightCatalog-xml-config.xml";
-            DestImgFolderPath = "D:\\Download\\crystal-cash\\images";
+            string defaultXmlCnfgFilePath = Path.Combine(Path.GetDirectoryName(
+                     Assembly.GetExecutingAssembly().Location), @"Data\weightCatalog-xml-config.xml");
+            string defaultDestImgFolderPath = Path.Combine(Path.GetDirectoryName(
+                     Assembly.GetExecutingAssembly().Location), @"Images");
+            */
+
+            //maybe it is neccessary to check if these two exist
+            //setting default pathes for template data
+            XmlCnfgFilePath = Path.Combine(Path.GetDirectoryName(
+                     Assembly.GetExecutingAssembly().Location), @"Data\weightCatalog-xml-config.xml");
+            DestImgFolderPath = Path.Combine(Path.GetDirectoryName(
+                     Assembly.GetExecutingAssembly().Location), @"Images");
+
+            LocalCatalogFilePath = Path.Combine(Path.GetDirectoryName(
+                     Assembly.GetExecutingAssembly().Location), @"Data\CashBoxesCatalog.xml");
+
+            //before calling LoadShopsFromLocalCatalog function need to check
+            //if file exist and all related checks need to be done
+
+            ListOfShopsWithCashBoxes = LoadShopsFromLocalCatalog(LocalCatalogFilePath);
 
             AppWorkMode = new WorkMode() { WorkType = WorkModeType.LoadFromFinalXml };
 
@@ -69,6 +93,9 @@ namespace PicturesSoft
                 GroupRep = new GroupRepository("Data/Groups.xml");
                 ChildRep = new ChildRepository("Data/Childs.xml");
             }
+
+            //filling comboBox
+            ShopListComboBoxInit();
 
             //filling group listview
             GroupListViewRedraw();
@@ -104,16 +131,40 @@ namespace PicturesSoft
             //adding click event for menu strip item
             downloadServerConfig.Click += downloadServerConfigMenuItem_Click;
 
+            ToolStripMenuItem dbConnectSettings =
+               new ToolStripMenuItem("Настройки подключения к БД для синхронизации");
+
+            dbConnectSettings.Click += dbConnectSettingsMenuItem_Click;
+
             //adding downloadServerConfig to root Configuration
             Configuration.DropDownItems.Add(downloadServerConfig);
+            Configuration.DropDownItems.Add(dbConnectSettings);
 
             //adding Configuration to MainMenuStripObject itself
             this.MainMenuStrip.Items.Add(Configuration);
         }
 
+        void ShopListComboBoxInit()
+        {
+            foreach(Shop shop in ListOfShopsWithCashBoxes)
+            {
+                this.shopListComboBox.Items.Add(shop);
+            }
+
+            this.shopListComboBox.MaxDropDownItems = 100;
+            this.shopListComboBox.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            this.shopListComboBox.AutoCompleteSource = AutoCompleteSource.ListItems;
+        }
+
         void downloadServerConfigMenuItem_Click(object sender, EventArgs e)
         {
             ConnectToServerAndUpdateFile();
+            //MakeLocalCatalog();
+        }
+
+        void dbConnectSettingsMenuItem_Click(object sender, EventArgs e)
+        {
+            ConnectToDbAndMakeLocalCatalog();
         }
 
         #endregion //Form1 creation
@@ -215,6 +266,12 @@ namespace PicturesSoft
 
         #endregion //Public Child methods
 
+        public void MakeLocalCatalogCall(string serverId, string port,
+            string user, string passwd, string dataBaseName)
+        {
+            //MakeLocalCatalog(serverId, port, user, passwd, dataBaseName);
+        }
+
         public void CreateFinalXmlFile()
         {
             XDocument xDoc = new XDocument();
@@ -294,11 +351,47 @@ namespace PicturesSoft
 
         #region Private helpers
 
+        private static List<Shop> LoadShopsFromLocalCatalog(string LocalCatalogFilePath)
+        {
+            List<Shop> loadedShops = new List<Shop>();
+
+            XDocument xDoc = XDocument.Load(LocalCatalogFilePath);
+
+            foreach (XElement shopElem in xDoc.Element("shops").Elements("shop"))
+            {
+                Shop shopToAdd = new Shop()
+                {
+                    Code = (string)shopElem.Attribute("number"),
+                    Name = (string)shopElem.Attribute("name"),
+                    Address = (string)shopElem.Attribute("address")
+                };
+
+                foreach (XElement cashBoxElem in shopElem.Elements("cashBox"))
+                {
+                    shopToAdd.CashBoxes.Add(new CashBox()
+                    {
+                        IpAddress = (string)cashBoxElem.Attribute("ipAddress"),
+                        Number = (string)cashBoxElem.Attribute("number"),
+                        ShopCode = (string)shopElem.Attribute("number")
+                    });
+                }
+
+                loadedShops.Add(shopToAdd);
+            }
+
+            return loadedShops;
+        }
+
         private void ConnectToServerAndUpdateFile()
         {
             var ConnToServAndUpFile = new ServerConnectionInfoForm();
-
             ConnToServAndUpFile.ShowDialog(this);
+        }
+
+        private void ConnectToDbAndMakeLocalCatalog()
+        {
+            var ConnectToDbAndMakeLocalCatalog = new DBConnSettingsForm();
+            ConnectToDbAndMakeLocalCatalog.ShowDialog(this);
         }
 
         private void GroupListViewRedraw()
@@ -992,13 +1085,27 @@ namespace PicturesSoft
             }          
         }
 
-        private void makeTreeBtn_Click(object sender, EventArgs e)
+        private void shopListComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            List<Shop> shops = new List<Shop>(GetListOfShopsWithCashBoxes());
+            cashesCheckedListBox.BeginUpdate();
 
-            PopulateTreeView(shops);
+            if (cashesCheckedListBox.Items.Count != 0)
+            {
+                cashesCheckedListBox.Items.Clear();
+            }
+
+            int shopListIndex = ListOfShopsWithCashBoxes.IndexOf((Shop)shopListComboBox.SelectedItem);
+
+            foreach(CashBox cashBox in ListOfShopsWithCashBoxes[shopListIndex].CashBoxes)
+            {
+                cashesCheckedListBox.Items.Add(cashBox);
+            }
+
+            cashesCheckedListBox.EndUpdate();
+            cashesCheckedListBox.Refresh();
         }
 
+        /*
         private void PopulateTreeView(List<Shop> shops)
         {
             this.cashBoxesTreeView.Nodes.Clear();
@@ -1022,98 +1129,6 @@ namespace PicturesSoft
             this.cashBoxesTreeView.EndUpdate();
             this.cashBoxesTreeView.Refresh();
         }
-
-        private List<Shop> GetListOfShopsWithCashBoxes()
-        {
-            //JsonConvert.DeserializeObject<Shop>()
-            List<Shop> shops = new List<Shop>();
-            List<CashBox> cashBoxes = new List<CashBox>();
-            List<TopologyTemp> topologyTemps;
-
-            string filepath = Path.Combine(Path.GetDirectoryName(
-                        Assembly.GetExecutingAssembly().Location), @"Data\topology.structure");
-
-            string json;
-
-            using (StreamReader r = new StreamReader(filepath))
-            {
-                json = r.ReadToEnd();
-                topologyTemps = new List<TopologyTemp>(JsonConvert.DeserializeObject<List<TopologyTemp>>(json));
-            }
-
-            //string uniqShopCode = String.Empty;
-
-            int indexOfScndComa;
-            int indexofThirdComa;
-            string currentShopCode = String.Empty;
-
-            List<string> shopCodesCheck = new List<string>();
-
-            foreach (var tplg in topologyTemps)
-            {
-                if (tplg.type.Equals("CENTRUM"))
-                    continue;
-
-                var result = tplg.topologyAddress
-                      .Select((ch, index) => new { ch, index })
-                      .Where(x => x.ch == '.')
-                      .Skip(1)
-                      .FirstOrDefault();
-
-                indexOfScndComa = result.index;
-
-                indexofThirdComa = tplg.topologyAddress.LastIndexOf('.');
-
-                currentShopCode = tplg.topologyAddress
-                    .Substring(indexOfScndComa + 1, indexofThirdComa - indexOfScndComa - 1);
-
-                if(shopCodesCheck.Count != 0)
-                {
-                    if(!shopCodesCheck.Contains(currentShopCode))
-                    {
-                        shopCodesCheck.Add(currentShopCode);
-                        shops.Add(new Shop()
-                        {
-                            Code = String.Copy(currentShopCode)
-                        });
-                    }
-                }
-                else
-                {
-                    shopCodesCheck.Add(currentShopCode);
-                    shops.Add(new Shop()
-                    {
-                        Code = String.Copy(currentShopCode)
-                    });
-                }
-
-                cashBoxes.Add(new CashBox()
-                {
-                    IpAddress = tplg.topologyPointIP,
-                    Number = tplg.topologyAddress.Substring(indexofThirdComa + 1),
-                    ShopCode = String.Copy(currentShopCode)
-                });
-            }
-
-            foreach(Shop shop in shops)
-            {
-                foreach(CashBox cashBox in cashBoxes)
-                {
-                    if(shop.Code.Equals(cashBox.ShopCode))
-                    {
-                        shop.CashBoxes.Add(new CashBox()
-                        {
-                            IpAddress = String.Copy(cashBox.IpAddress),
-                            Number = String.Copy(cashBox.Number),
-                            ShopCode = String.Copy(cashBox.ShopCode)
-                        });
-
-                        //cashBoxes.Remove(cashBox);
-                    }
-                }
-            }
-
-            return shops;
-        }
+        */
     }
 }
