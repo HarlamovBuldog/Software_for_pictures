@@ -10,6 +10,13 @@ namespace PicturesSoft
         public ServerConnectionInfoForm()
         {
             InitializeComponent();
+
+            //< Data init for testing comfort
+            ipTextBox.Text = "192.168.0.224";
+            portTextBox.Text = "22";
+            loginTextBox.Text = "tc";
+            passwdTextBox.Text = "324012";
+            //>
         }
 
         private void connToServerAndDownloadBtn_Click(object sender, EventArgs e)

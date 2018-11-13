@@ -16,10 +16,18 @@ namespace PicturesSoft
         public DBConnSettingsForm()
         {
             InitializeComponent();
+
+            //< Data init for testing comfort
+            this.serverIDTextBox.Text = "192.168.0.225";
+            this.portIDTextBox.Text = "5432";
+            this.userNameTextBox.Text = "postgres";
+            this.passwdTextBox.Text = "postgres";
+            this.dataBaseNameTextBox.Text = "set";
+            //>
         }
 
         private void ApplyDbSettingsBtn_Click(object sender, EventArgs e)
-        {
+        {          
             string serverId = this.serverIDTextBox.Text;
             string port = this.portIDTextBox.Text;
             string userName = this.userNameTextBox.Text;
