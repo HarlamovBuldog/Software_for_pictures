@@ -15,7 +15,7 @@ namespace PicturesSoft
     {
         #region Fields
 
-        readonly List<Group> _groups;
+        readonly List<Group> _groups = new List<Group>();
         static string _groupDataFile;
 
         #endregion // Fields
@@ -39,6 +39,11 @@ namespace PicturesSoft
         public static XNamespace Xmlns { get; set; }
 
         #region Constructor
+
+        public GroupRepository()
+        {
+
+        }
 
         /// <summary>
         /// Creates a new repository of groups.
@@ -70,11 +75,6 @@ namespace PicturesSoft
         #endregion // Constructor
 
         #region Public Interface
-
-        /// <summary>
-        /// Raised when a group is placed into the repository.
-        /// </summary>
-        //public event EventHandler<GroupAddedEventArgs> GroupAdded;
 
         /// <summary>
         /// Places the specified group into the repository.

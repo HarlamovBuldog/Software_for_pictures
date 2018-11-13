@@ -40,6 +40,11 @@ namespace PicturesSoft
 
         #region Constructor
 
+        public ChildRepository()
+        {
+
+        }
+
         /// <summary>
         /// Creates a new repository of childs.
         /// </summary>
