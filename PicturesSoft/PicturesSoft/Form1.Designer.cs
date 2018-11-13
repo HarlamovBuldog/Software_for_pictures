@@ -44,16 +44,18 @@
             this.moveObjRightBtn = new System.Windows.Forms.Button();
             this.moveObjDownBtn = new System.Windows.Forms.Button();
             this.moveObjUpBtn = new System.Windows.Forms.Button();
-            this.SSHConnectBtn = new System.Windows.Forms.Button();
             this.mainMenuStrip = new System.Windows.Forms.MenuStrip();
             this.shopListComboBox = new System.Windows.Forms.ComboBox();
             this.cashesCheckedListBox = new System.Windows.Forms.CheckedListBox();
+            this.uploadInfoToCashBoxBtn = new System.Windows.Forms.Button();
+            this.getTemplateFromCashBoxBtn = new System.Windows.Forms.Button();
+            this.selectAllCashBoxesCheckBox = new System.Windows.Forms.CheckBox();
             this.moveObjectsBtnPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // BackToGroupsBtn
             // 
-            this.BackToGroupsBtn.Location = new System.Drawing.Point(710, 169);
+            this.BackToGroupsBtn.Location = new System.Drawing.Point(742, 209);
             this.BackToGroupsBtn.Name = "BackToGroupsBtn";
             this.BackToGroupsBtn.Size = new System.Drawing.Size(89, 23);
             this.BackToGroupsBtn.TabIndex = 2;
@@ -64,7 +66,7 @@
             // groupsListView
             // 
             this.groupsListView.HideSelection = false;
-            this.groupsListView.Location = new System.Drawing.Point(295, 59);
+            this.groupsListView.Location = new System.Drawing.Point(327, 99);
             this.groupsListView.MultiSelect = false;
             this.groupsListView.Name = "groupsListView";
             this.groupsListView.Size = new System.Drawing.Size(408, 330);
@@ -77,7 +79,7 @@
             // childsListView
             // 
             this.childsListView.HideSelection = false;
-            this.childsListView.Location = new System.Drawing.Point(295, 59);
+            this.childsListView.Location = new System.Drawing.Point(327, 99);
             this.childsListView.MultiSelect = false;
             this.childsListView.Name = "childsListView";
             this.childsListView.Size = new System.Drawing.Size(408, 330);
@@ -89,7 +91,7 @@
             // 
             // createNewItemBtn
             // 
-            this.createNewItemBtn.Location = new System.Drawing.Point(710, 57);
+            this.createNewItemBtn.Location = new System.Drawing.Point(742, 97);
             this.createNewItemBtn.Name = "createNewItemBtn";
             this.createNewItemBtn.Size = new System.Drawing.Size(75, 23);
             this.createNewItemBtn.TabIndex = 5;
@@ -99,7 +101,7 @@
             // 
             // editSelectedBtn
             // 
-            this.editSelectedBtn.Location = new System.Drawing.Point(710, 86);
+            this.editSelectedBtn.Location = new System.Drawing.Point(742, 126);
             this.editSelectedBtn.Name = "editSelectedBtn";
             this.editSelectedBtn.Size = new System.Drawing.Size(75, 23);
             this.editSelectedBtn.TabIndex = 6;
@@ -109,7 +111,7 @@
             // 
             // deleteSelectedBtn
             // 
-            this.deleteSelectedBtn.Location = new System.Drawing.Point(710, 115);
+            this.deleteSelectedBtn.Location = new System.Drawing.Point(742, 155);
             this.deleteSelectedBtn.Name = "deleteSelectedBtn";
             this.deleteSelectedBtn.Size = new System.Drawing.Size(75, 23);
             this.deleteSelectedBtn.TabIndex = 7;
@@ -119,7 +121,7 @@
             // 
             // createFinalXmlBtn
             // 
-            this.createFinalXmlBtn.Location = new System.Drawing.Point(860, 431);
+            this.createFinalXmlBtn.Location = new System.Drawing.Point(892, 471);
             this.createFinalXmlBtn.Name = "createFinalXmlBtn";
             this.createFinalXmlBtn.Size = new System.Drawing.Size(75, 23);
             this.createFinalXmlBtn.TabIndex = 8;
@@ -131,7 +133,7 @@
             // 
             this.navBtwPagesTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.navBtwPagesTableLayout.GrowStyle = System.Windows.Forms.TableLayoutPanelGrowStyle.AddColumns;
-            this.navBtwPagesTableLayout.Location = new System.Drawing.Point(351, 391);
+            this.navBtwPagesTableLayout.Location = new System.Drawing.Point(383, 431);
             this.navBtwPagesTableLayout.Name = "navBtwPagesTableLayout";
             this.navBtwPagesTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.navBtwPagesTableLayout.Size = new System.Drawing.Size(135, 45);
@@ -139,7 +141,7 @@
             // 
             // moveBackBetweenPagesBtn
             // 
-            this.moveBackBetweenPagesBtn.Location = new System.Drawing.Point(296, 391);
+            this.moveBackBetweenPagesBtn.Location = new System.Drawing.Point(328, 431);
             this.moveBackBetweenPagesBtn.Name = "moveBackBetweenPagesBtn";
             this.moveBackBetweenPagesBtn.Size = new System.Drawing.Size(49, 46);
             this.moveBackBetweenPagesBtn.TabIndex = 10;
@@ -149,7 +151,7 @@
             // 
             // moveForwardBetweenPagesBtn
             // 
-            this.moveForwardBetweenPagesBtn.Location = new System.Drawing.Point(655, 391);
+            this.moveForwardBetweenPagesBtn.Location = new System.Drawing.Point(687, 431);
             this.moveForwardBetweenPagesBtn.Name = "moveForwardBetweenPagesBtn";
             this.moveForwardBetweenPagesBtn.Size = new System.Drawing.Size(48, 46);
             this.moveForwardBetweenPagesBtn.TabIndex = 11;
@@ -164,7 +166,7 @@
             this.moveObjectsBtnPanel.Controls.Add(this.moveObjRightBtn);
             this.moveObjectsBtnPanel.Controls.Add(this.moveObjDownBtn);
             this.moveObjectsBtnPanel.Controls.Add(this.moveObjUpBtn);
-            this.moveObjectsBtnPanel.Location = new System.Drawing.Point(724, 238);
+            this.moveObjectsBtnPanel.Location = new System.Drawing.Point(756, 278);
             this.moveObjectsBtnPanel.Name = "moveObjectsBtnPanel";
             this.moveObjectsBtnPanel.Size = new System.Drawing.Size(211, 121);
             this.moveObjectsBtnPanel.TabIndex = 12;
@@ -218,16 +220,6 @@
             this.moveObjUpBtn.UseVisualStyleBackColor = true;
             this.moveObjUpBtn.Click += new System.EventHandler(this.moveObjUpBtn_Click);
             // 
-            // SSHConnectBtn
-            // 
-            this.SSHConnectBtn.Location = new System.Drawing.Point(420, 26);
-            this.SSHConnectBtn.Name = "SSHConnectBtn";
-            this.SSHConnectBtn.Size = new System.Drawing.Size(110, 23);
-            this.SSHConnectBtn.TabIndex = 13;
-            this.SSHConnectBtn.Text = "Get Xml Config";
-            this.SSHConnectBtn.UseVisualStyleBackColor = true;
-            this.SSHConnectBtn.Click += new System.EventHandler(this.SSHConnectBtn_Click);
-            // 
             // mainMenuStrip
             // 
             this.mainMenuStrip.Location = new System.Drawing.Point(0, 0);
@@ -238,7 +230,7 @@
             // shopListComboBox
             // 
             this.shopListComboBox.FormattingEnabled = true;
-            this.shopListComboBox.Location = new System.Drawing.Point(33, 86);
+            this.shopListComboBox.Location = new System.Drawing.Point(65, 126);
             this.shopListComboBox.Name = "shopListComboBox";
             this.shopListComboBox.Size = new System.Drawing.Size(202, 21);
             this.shopListComboBox.TabIndex = 20;
@@ -248,19 +240,51 @@
             // cashesCheckedListBox
             // 
             this.cashesCheckedListBox.FormattingEnabled = true;
-            this.cashesCheckedListBox.Location = new System.Drawing.Point(33, 115);
+            this.cashesCheckedListBox.Location = new System.Drawing.Point(65, 175);
             this.cashesCheckedListBox.Name = "cashesCheckedListBox";
-            this.cashesCheckedListBox.Size = new System.Drawing.Size(202, 409);
+            this.cashesCheckedListBox.Size = new System.Drawing.Size(202, 319);
             this.cashesCheckedListBox.TabIndex = 21;
+            // 
+            // uploadInfoToCashBoxBtn
+            // 
+            this.uploadInfoToCashBoxBtn.Location = new System.Drawing.Point(65, 65);
+            this.uploadInfoToCashBoxBtn.Name = "uploadInfoToCashBoxBtn";
+            this.uploadInfoToCashBoxBtn.Size = new System.Drawing.Size(137, 23);
+            this.uploadInfoToCashBoxBtn.TabIndex = 22;
+            this.uploadInfoToCashBoxBtn.Text = "Отправить на кассы";
+            this.uploadInfoToCashBoxBtn.UseVisualStyleBackColor = true;
+            // 
+            // getTemplateFromCashBoxBtn
+            // 
+            this.getTemplateFromCashBoxBtn.Location = new System.Drawing.Point(65, 94);
+            this.getTemplateFromCashBoxBtn.Name = "getTemplateFromCashBoxBtn";
+            this.getTemplateFromCashBoxBtn.Size = new System.Drawing.Size(137, 23);
+            this.getTemplateFromCashBoxBtn.TabIndex = 23;
+            this.getTemplateFromCashBoxBtn.Text = "Загрузить с кассы";
+            this.getTemplateFromCashBoxBtn.UseVisualStyleBackColor = true;
+            this.getTemplateFromCashBoxBtn.Click += new System.EventHandler(this.getTemplateFromCashBoxBtn_Click);
+            // 
+            // selectAllCashBoxesCheckBox
+            // 
+            this.selectAllCashBoxesCheckBox.AutoSize = true;
+            this.selectAllCashBoxesCheckBox.Location = new System.Drawing.Point(65, 152);
+            this.selectAllCashBoxesCheckBox.Name = "selectAllCashBoxesCheckBox";
+            this.selectAllCashBoxesCheckBox.Size = new System.Drawing.Size(91, 17);
+            this.selectAllCashBoxesCheckBox.TabIndex = 24;
+            this.selectAllCashBoxesCheckBox.Text = "Выбрать все";
+            this.selectAllCashBoxesCheckBox.UseVisualStyleBackColor = true;
+            this.selectAllCashBoxesCheckBox.CheckedChanged += new System.EventHandler(this.selectAllCashBoxesCheckBox_CheckedChanged);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1046, 551);
+            this.Controls.Add(this.selectAllCashBoxesCheckBox);
+            this.Controls.Add(this.getTemplateFromCashBoxBtn);
+            this.Controls.Add(this.uploadInfoToCashBoxBtn);
             this.Controls.Add(this.cashesCheckedListBox);
             this.Controls.Add(this.shopListComboBox);
-            this.Controls.Add(this.SSHConnectBtn);
             this.Controls.Add(this.moveObjectsBtnPanel);
             this.Controls.Add(this.moveForwardBetweenPagesBtn);
             this.Controls.Add(this.moveBackBetweenPagesBtn);
@@ -301,10 +325,12 @@
         private System.Windows.Forms.Button moveObjDownBtn;
         private System.Windows.Forms.Button moveObjUpBtn;
         private System.Windows.Forms.Label moveObjectsPanelLabel;
-        private System.Windows.Forms.Button SSHConnectBtn;
         private System.Windows.Forms.MenuStrip mainMenuStrip;
         private System.Windows.Forms.ComboBox shopListComboBox;
         private System.Windows.Forms.CheckedListBox cashesCheckedListBox;
+        private System.Windows.Forms.Button uploadInfoToCashBoxBtn;
+        private System.Windows.Forms.Button getTemplateFromCashBoxBtn;
+        private System.Windows.Forms.CheckBox selectAllCashBoxesCheckBox;
     }
 }
 

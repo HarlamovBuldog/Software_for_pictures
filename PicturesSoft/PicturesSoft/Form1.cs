@@ -30,8 +30,8 @@ namespace PicturesSoft
         public string LocalCatalogFilePath { get; set; }
         public WorkMode AppWorkMode { get; set; }
         public int globalListViewRelatedPageNumber { get; private set; }
-        public ChildRepository ChildRep { get; private set; }
-        public GroupRepository GroupRep { get; private set; }
+        public ChildRepository ChildRep { get; private set; } = new ChildRepository();
+        public GroupRepository GroupRep { get; private set; } = new GroupRepository();
         public List<Shop> ListOfShopsWithCashBoxes { get; private set; } = new List<Shop>();
 
         #endregion //public properties
@@ -57,31 +57,64 @@ namespace PicturesSoft
             //Childs.xml file path
             string childXmlFilePath = Path.Combine(Path.GetDirectoryName(
                      Assembly.GetExecutingAssembly().Location), @"Data\Childs.xml");
-            
-
-            string defaultXmlCnfgFilePath = Path.Combine(Path.GetDirectoryName(
-                     Assembly.GetExecutingAssembly().Location), @"Data\weightCatalog-xml-config.xml");
-            string defaultDestImgFolderPath = Path.Combine(Path.GetDirectoryName(
-                     Assembly.GetExecutingAssembly().Location), @"Images");
             */
 
-            //maybe it is neccessary to check if these two exist
-            //setting default pathes for template data
-            XmlCnfgFilePath = Path.Combine(Path.GetDirectoryName(
-                     Assembly.GetExecutingAssembly().Location), @"Data\weightCatalog-xml-config.xml");
-            DestImgFolderPath = Path.Combine(Path.GetDirectoryName(
-                     Assembly.GetExecutingAssembly().Location), @"Images");
+            //Setting AppWorkMode for now is not really necessary.
+            //Idea was that we can build weightCatalog-xml-config.xml file
+            //from nothing. So this property is just for supporting this old function.
+            AppWorkMode = new WorkMode() { WorkType = WorkModeType.LoadFromFinalXml };
 
+            //the first step is to check if directory structure is set
+            //if not we build it
+            DirectoryStructureInit();
+
+            //after check we can set default image folder path without any troubles
+            DestImgFolderPath = Path.Combine(Path.GetDirectoryName(
+                     Assembly.GetExecutingAssembly().Location), @"Temp\Images");
+            
             LocalCatalogFilePath = Path.Combine(Path.GetDirectoryName(
                      Assembly.GetExecutingAssembly().Location), @"Data\CashBoxesCatalog.xml");
 
             //before calling LoadShopsFromLocalCatalog function need to check
             //if file exist and all related checks need to be done
+ 
+            if (File.Exists(LocalCatalogFilePath))
+                ListOfShopsWithCashBoxes = LoadShopsFromLocalCatalog(LocalCatalogFilePath);
+            else
+            {
+                MainAppSettingsInit();
+                if (File.Exists(LocalCatalogFilePath))
+                    ListOfShopsWithCashBoxes = LoadShopsFromLocalCatalog(LocalCatalogFilePath);
+            }                
 
-            ListOfShopsWithCashBoxes = LoadShopsFromLocalCatalog(LocalCatalogFilePath);
+            XmlCnfgFilePath = Path.Combine(Path.GetDirectoryName(
+                     Assembly.GetExecutingAssembly().Location), @"Temp\weightCatalog-xml-config.xml");
 
-            AppWorkMode = new WorkMode() { WorkType = WorkModeType.LoadFromFinalXml };
+            if (File.Exists(XmlCnfgFilePath))
+                RepositoriesInit();
+            else
+            {
+                MessageBox.Show("Не найден файл weightCatalog-xml-config.xml. Для корректной " +
+                    "работы программы выберите кассу и загрузите с неё необходимый файл.",
+                    "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.createNewItemBtn.Enabled = false;
+                this.editSelectedBtn.Enabled = false;
+                this.deleteSelectedBtn.Enabled = false;
+            }                
 
+            //filling comboBox
+            if(ListOfShopsWithCashBoxes.Count != 0)
+                ShopListComboBoxInit();
+
+            //filling group listview
+            if(GroupRep.GetGroups().Count != 0)
+                GroupListViewRedraw();
+
+            MainMenuStripInit();
+        }
+
+        private void RepositoriesInit()
+        {
             if (this.AppWorkMode.WorkType == WorkModeType.LoadFromFinalXml)
             {
                 GroupRep = new GroupRepository(XmlCnfgFilePath, AppWorkMode);
@@ -93,19 +126,6 @@ namespace PicturesSoft
                 GroupRep = new GroupRepository("Data/Groups.xml");
                 ChildRep = new ChildRepository("Data/Childs.xml");
             }
-
-            //filling comboBox
-            ShopListComboBoxInit();
-
-            //filling group listview
-            GroupListViewRedraw();
-
-            MainMenuStripInit();
-
-            /*
-            //filling listbox
-            this.listBox1.Items.AddRange(groupRep.GetGroups().ToArray<Group>());
-            */
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -117,6 +137,44 @@ namespace PicturesSoft
             this.moveForwardBetweenPagesBtn.Enabled = false;
 
             this.moveObjectsBtnPanel.Enabled = false;
+        }
+
+        /// <summary>
+        /// Method sets default directory structure
+        /// </summary>
+        private void DirectoryStructureInit()
+        {
+            string helpFilesFolderPath = Path.Combine(Path.GetDirectoryName(
+                     Assembly.GetExecutingAssembly().Location), @"Data");
+
+            if (!Directory.Exists(helpFilesFolderPath))
+                Directory.CreateDirectory(helpFilesFolderPath);
+
+            string tempFilesFolderPath = Path.Combine(Path.GetDirectoryName(
+                     Assembly.GetExecutingAssembly().Location), @"Temp\Images");
+
+            if (!Directory.Exists(tempFilesFolderPath))
+                Directory.CreateDirectory(tempFilesFolderPath);
+        }
+
+        private void MainAppSettingsInit()
+        {
+            var result = MessageBox.Show("Для корректной работы программы необходимо создать локальный каталог" +
+                "касс в разрезе магазинов. Для этого необходимо ввести данные для подключения к серверу, " +
+                "а также к соответствующей базе данных. Хотите выполнить это сейчас?",
+                "Информация", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+
+            if(result == DialogResult.Yes)
+            {
+                ConnectToServerAndDownloadTopologyStructureFile();
+                ConnectToDbAndMakeLocalCatalog();
+            }
+            else
+            {
+                MessageBox.Show("Дерево касс в левой части экрана будет недоступно. Чтобы активировать " +
+                    "его, перейдите в раздел Настройки", "Внимание",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void MainMenuStripInit()
@@ -158,8 +216,7 @@ namespace PicturesSoft
 
         void downloadServerConfigMenuItem_Click(object sender, EventArgs e)
         {
-            ConnectToServerAndUpdateFile();
-            //MakeLocalCatalog();
+            ConnectToServerAndDownloadTopologyStructureFile();
         }
 
         void dbConnectSettingsMenuItem_Click(object sender, EventArgs e)
@@ -382,7 +439,7 @@ namespace PicturesSoft
             return loadedShops;
         }
 
-        private void ConnectToServerAndUpdateFile()
+        private void ConnectToServerAndDownloadTopologyStructureFile()
         {
             var ConnToServAndUpFile = new ServerConnectionInfoForm();
             ConnToServAndUpFile.ShowDialog(this);
@@ -1071,22 +1128,11 @@ namespace PicturesSoft
 
         #endregion //Move objects buttons Events
 
-        private void SSHConnectBtn_Click(object sender, EventArgs e)
-        {
-            using (var client = new Renci.SshNet.ScpClient("192.168.0.224", 22, "tc", "324012"))
-            {
-                client.Connect();
-                client.Download("/home/tc/storage/crystal-cash/config/plugins/weightCatalog-xml-config.xml",
-                    new FileInfo(
-                        Path.Combine(Path.GetDirectoryName(
-                        Assembly.GetExecutingAssembly().Location), @"Data\weightCatalog-xml-config.xml"))
-                        );
-                client.Disconnect();
-            }          
-        }
-
         private void shopListComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if(this.selectAllCashBoxesCheckBox.Checked)
+                this.selectAllCashBoxesCheckBox.Checked = false;
+
             cashesCheckedListBox.BeginUpdate();
 
             if (cashesCheckedListBox.Items.Count != 0)
@@ -1103,6 +1149,53 @@ namespace PicturesSoft
 
             cashesCheckedListBox.EndUpdate();
             cashesCheckedListBox.Refresh();
+        }
+
+        private void selectAllCashBoxesCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.cashesCheckedListBox.Items.Count == 0)
+                return;
+
+            if(this.selectAllCashBoxesCheckBox.Checked)
+            {
+                for(int i = 0; i < this.cashesCheckedListBox.Items.Count; i++)
+                {
+                    this.cashesCheckedListBox.SetItemChecked(i, true);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < this.cashesCheckedListBox.Items.Count; i++)
+                {
+                    this.cashesCheckedListBox.SetItemChecked(i, false);
+                }
+            }
+            
+        }
+
+        private void getTemplateFromCashBoxBtn_Click(object sender, EventArgs e)
+        {
+            using (var client = new Renci.SshNet.ScpClient("192.168.0.224", 22, "tc", "324012"))
+            {
+                client.Connect();
+                client.Download("/home/tc/storage/crystal-cash/config/plugins/weightCatalog-xml-config.xml",
+                    new FileInfo(
+                        Path.Combine(Path.GetDirectoryName(
+                        Assembly.GetExecutingAssembly().Location), @"Temp\weightCatalog-xml-config.xml"))
+                        );
+                client.Download("/home/tc/storage/crystal-cash/images",
+                    new DirectoryInfo(
+                        Path.Combine(Path.GetDirectoryName(
+                        Assembly.GetExecutingAssembly().Location), @"Temp\Images"))
+                        );
+                client.Disconnect();
+            }
+
+            RepositoriesInit();
+            GroupListViewRedraw();
+
+            if(!this.createNewItemBtn.Enabled)
+                this.createNewItemBtn.Enabled = true;
         }
 
         /*
