@@ -253,6 +253,7 @@
             this.uploadInfoToCashBoxBtn.TabIndex = 22;
             this.uploadInfoToCashBoxBtn.Text = "Отправить на кассы";
             this.uploadInfoToCashBoxBtn.UseVisualStyleBackColor = true;
+            this.uploadInfoToCashBoxBtn.Click += new System.EventHandler(this.uploadInfoToCashBoxBtn_Click);
             // 
             // getTemplateFromCashBoxBtn
             // 

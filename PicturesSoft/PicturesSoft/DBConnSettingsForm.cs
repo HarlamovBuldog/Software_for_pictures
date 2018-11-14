@@ -18,7 +18,7 @@ namespace PicturesSoft
             InitializeComponent();
 
             //< Data init for testing comfort
-            this.serverIDTextBox.Text = "192.168.0.225";
+            this.serverIDTextBox.Text = "192.168.1.222";
             this.portIDTextBox.Text = "5432";
             this.userNameTextBox.Text = "postgres";
             this.passwdTextBox.Text = "postgres";

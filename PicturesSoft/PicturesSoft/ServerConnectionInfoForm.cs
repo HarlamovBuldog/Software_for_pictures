@@ -12,9 +12,9 @@ namespace PicturesSoft
             InitializeComponent();
 
             //< Data init for testing comfort
-            ipTextBox.Text = "192.168.0.224";
+            ipTextBox.Text = "192.168.0.225";
             portTextBox.Text = "22";
-            loginTextBox.Text = "tc";
+            loginTextBox.Text = "root";
             passwdTextBox.Text = "324012";
             //>
         }
