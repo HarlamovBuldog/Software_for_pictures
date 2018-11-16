@@ -78,6 +78,8 @@
             // 
             // childsListView
             // 
+            this.childsListView.BackColor = System.Drawing.SystemColors.Window;
+            this.childsListView.ForeColor = System.Drawing.SystemColors.WindowText;
             this.childsListView.HideSelection = false;
             this.childsListView.Location = new System.Drawing.Point(327, 99);
             this.childsListView.MultiSelect = false;
