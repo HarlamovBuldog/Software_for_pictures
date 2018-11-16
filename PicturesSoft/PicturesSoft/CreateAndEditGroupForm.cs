@@ -21,11 +21,14 @@ namespace PicturesSoft
 
         #region Form creation
 
-        public CreateAndEditGroupForm(WorkMode workMode, string DestImgFolderPath)
+        public CreateAndEditGroupForm(WorkMode workMode, string DestImgFolderPath, bool isThisTheFirstElementInSequence = false)
         {
             this.WorkMode = workMode;
             this.GroupToEditOrCreate = Group.CreateNewGroup();
             PredeterminedDestImgFolderPath = DestImgFolderPath;
+
+            if (isThisTheFirstElementInSequence)
+                this.addAfterSelectedRadioBtn.Enabled = false;
 
             if (WorkMode.WorkType.Equals(WorkModeType.Create))
             {
