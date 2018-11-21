@@ -23,17 +23,25 @@ namespace PicturesSoft
 
         #region public properties
 
-        public string XmlCnfgFilePath { get; set; }
-        public string DestImgFolderPath { get; set; }
-        public string LocalCatalogFilePath { get; set; }
-        public string UnixSpecifedXmlCnfgFilePath { get; set; }
+        public string XmlCnfgFilePath { get; private set; }
+        public string DestImgFolderPath { get; private set; }
+        public string LocalCatalogFilePath { get; private set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string UnixSpecifedXmlCnfgFilePath { get; private set; }
         /// <summary>
         /// File path for alternative weightCatalog-xml-config.xml file
         /// which is downloaded from cash box every time after connect and
-        /// according to which images from cash box are downloaded. 
+        /// according to which images from cash box are downloaded. The only reason why we
+        /// need this variable and additional folder is that we can't read xml config file
+        /// directly from unix-system. So we need to download it.
         /// </summary>
-        public string AlternativeXmlCnfgFilePath { get; set; }
+        public string AlternativeXmlCnfgFilePath { get; private set; }
         public WorkMode AppWorkMode { get; set; }
+        /// <summary>
+        /// Listview page number under the same listview that is tracked globally.
+        /// </summary>
         public int GlobalListViewRelatedPageNumber { get; private set; }
         public ChildRepository ChildRep { get; private set; } = new ChildRepository();
         public GroupRepository GroupRep { get; private set; } = new GroupRepository();
@@ -87,7 +95,6 @@ namespace PicturesSoft
             
             //before calling LoadShopsFromLocalCatalog function need to check
             //if file exist and all related checks need to be done
-
             if (File.Exists(LocalCatalogFilePath))
                 ListOfShopsWithCashBoxes = LoadShopsFromLocalCatalog(LocalCatalogFilePath);
             else
@@ -129,7 +136,6 @@ namespace PicturesSoft
             {
                 GroupRep = new GroupRepository(XmlCnfgFilePath, AppWorkMode);
                 ChildRep = new ChildRepository(XmlCnfgFilePath, AppWorkMode);
-                createFinalXmlBtn.Enabled = false;
             }
             else
             {
@@ -452,6 +458,13 @@ namespace PicturesSoft
                     });
                 }
 
+                if(shopToAdd.CashBoxes.Count != 0)
+                {
+                    //sorting by number list of cashBoxes for each shop 
+                    shopToAdd.CashBoxes = shopToAdd.CashBoxes
+                    .OrderBy(s => Int32.Parse(s.Number)).ToList();
+                }                    
+
                 loadedShops.Add(shopToAdd);
             }
 
@@ -594,13 +607,17 @@ namespace PicturesSoft
             this.Refresh();
             this.Invalidate();
             this.childsListView.Refresh();
-            this.childsListView.Invalidate();
+            this.childsListView.Invalidate();            
+        }
 
-            if (childsListView.Items.Count > 0 && globalSelectedItem != null 
+        private void RestoreChildListViewItemHighLightedState()
+        {
+            if (childsListView.Items.Count > 0 && globalSelectedItem != null
                 && globalSelectedItem.GetType().Name.Equals("Child"))
             {
                 int indexOfGlobalSelectedItemFromRepoList =
-                    ChildRep.GetChildsBelongToGroup(groupOwner.Id).IndexOf((Child)globalSelectedItem);
+                    ChildRep.GetChildsBelongToGroup(groupOwner.Id).IndexOf((Child)globalSelectedItem)
+                    - (9 * (GlobalListViewRelatedPageNumber - 1));
                 this.childsListView.Items[indexOfGlobalSelectedItemFromRepoList]
                     .Selected = true;
             }
@@ -629,6 +646,10 @@ namespace PicturesSoft
             }
         }
 
+        /// <summary>
+        /// Method clears existing in navBtwPagesTableLayout list of controls
+        /// and dynamically refills it as well as adding method to click event for each control.
+        /// </summary>
         private void NavBtwPagesTableLayoutRedraw()
         {
             var childsListBelongToGroup = ChildRep.GetChildsBelongToGroup(groupOwner.Id);
@@ -684,6 +705,20 @@ namespace PicturesSoft
             this.Invalidate();
             this.navBtwPagesTableLayout.Refresh();
             this.navBtwPagesTableLayout.Invalidate();
+
+            makeNavBtwPagesTableLayoutPanelControlHighlighted();
+        }
+
+        private void makeNavBtwPagesTableLayoutPanelControlHighlighted()
+        {
+            foreach(Control control in this.navBtwPagesTableLayout.Controls)
+            {
+                control.BackColor = Color.LightGray;
+            }
+
+            this.navBtwPagesTableLayout
+                .Controls[GlobalListViewRelatedPageNumber - 1]
+                .BackColor = Color.Yellow;
         }
 
         private void DeleteAllChildsBelongToGroup()
@@ -814,6 +849,8 @@ namespace PicturesSoft
 
             this.childsListView.Show();
             this.BackToGroupsBtn.Show();
+
+            this.catalogOrientationLabel.Text += " > " + groupOwner.Name;
         }
 
         private void groupsListView_VisibleChanged(object sender, EventArgs e)
@@ -1019,11 +1056,6 @@ namespace PicturesSoft
 
         #endregion //CRUD buttons Events
 
-        private void createFinalXmlBtn_Click(object sender, EventArgs e)
-        {
-            CreateFinalXmlFile();
-        }
-
         #region Navigation buttons Events
 
         private void BackToGroupsBtn_Click(object sender, EventArgs e)
@@ -1037,6 +1069,12 @@ namespace PicturesSoft
 
             if (this.navBtwPagesTableLayout.Controls.Count != 0)
                 this.navBtwPagesTableLayout.Controls.Clear();
+
+            int initcatalogOrientationLabelStrLength =
+                this.catalogOrientationLabel.Text.IndexOf('г') + 1;
+
+            this.catalogOrientationLabel.Text =
+                 this.catalogOrientationLabel.Text.Substring(0, initcatalogOrientationLabelStrLength);
         }
 
         private void moveBackBetweenPagesBtn_Click(object sender, EventArgs e)
@@ -1048,6 +1086,7 @@ namespace PicturesSoft
 
             GlobalListViewRelatedPageNumber--;
             ChildListViewRedraw();
+            makeNavBtwPagesTableLayoutPanelControlHighlighted();
         }
 
         private void moveForwardBetweenPagesBtn_Click(object sender, EventArgs e)
@@ -1059,6 +1098,7 @@ namespace PicturesSoft
 
             GlobalListViewRelatedPageNumber++;
             ChildListViewRedraw();
+            makeNavBtwPagesTableLayoutPanelControlHighlighted();
         }
 
         private void navBtwPagesButton_Click(object sender, EventArgs eventArgs)
@@ -1071,6 +1111,7 @@ namespace PicturesSoft
             GlobalListViewRelatedPageNumber = Int32.Parse(((Button)sender).Text);
             ChildListViewRedraw();
             SetMoveBetweenPagesBtnsEnabledProperty();
+            makeNavBtwPagesTableLayoutPanelControlHighlighted();
         }
 
         #endregion //Navigation buttons Events
@@ -1099,6 +1140,7 @@ namespace PicturesSoft
 
                 this.ChildRep.SwapChilds(firstChildIndexToSwap, secondChildIndexToSwap);
                 this.ChildListViewRedraw();
+                RestoreChildListViewItemHighLightedState();
                 this.childsListView.Focus();
             }
 
@@ -1127,6 +1169,7 @@ namespace PicturesSoft
 
                 this.ChildRep.SwapChilds(firstChildIndexToSwap, secondChildIndexToSwap);
                 this.ChildListViewRedraw();
+                RestoreChildListViewItemHighLightedState();
                 this.childsListView.Focus();
             }
 
@@ -1154,8 +1197,16 @@ namespace PicturesSoft
                 int secondChildIndexToSwap = firstChildIndexToSwap - 1;
 
                 this.ChildRep.SwapChilds(firstChildIndexToSwap, secondChildIndexToSwap);
+
+                if(secondChildIndexToSwap > 0 && firstChildIndexToSwap % 9 == 0)
+                {
+                    GlobalListViewRelatedPageNumber--;
+                }
+
                 this.ChildListViewRedraw();
+                RestoreChildListViewItemHighLightedState();
                 this.childsListView.Focus();
+                makeNavBtwPagesTableLayoutPanelControlHighlighted();
             }
 
             SetMoveObjBtnsEnabledProperty();
@@ -1182,8 +1233,16 @@ namespace PicturesSoft
                 int secondChildIndexToSwap = firstChildIndexToSwap + 1;
 
                 this.ChildRep.SwapChilds(firstChildIndexToSwap, secondChildIndexToSwap);
+
+                if (secondChildIndexToSwap > 0 && secondChildIndexToSwap % 9 == 0)
+                {
+                    GlobalListViewRelatedPageNumber++;
+                }
+
                 this.ChildListViewRedraw();
+                RestoreChildListViewItemHighLightedState();
                 this.childsListView.Focus();
+                makeNavBtwPagesTableLayoutPanelControlHighlighted();
             }
 
             SetMoveObjBtnsEnabledProperty();
