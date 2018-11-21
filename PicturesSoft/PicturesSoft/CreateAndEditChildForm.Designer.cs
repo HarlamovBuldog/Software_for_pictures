@@ -52,18 +52,18 @@
             // 
             // opnFileDlgChildBtn
             // 
-            this.opnFileDlgChildBtn.Location = new System.Drawing.Point(277, 217);
+            this.opnFileDlgChildBtn.Location = new System.Drawing.Point(271, 210);
             this.opnFileDlgChildBtn.Name = "opnFileDlgChildBtn";
-            this.opnFileDlgChildBtn.Size = new System.Drawing.Size(65, 19);
+            this.opnFileDlgChildBtn.Size = new System.Drawing.Size(95, 28);
             this.opnFileDlgChildBtn.TabIndex = 27;
-            this.opnFileDlgChildBtn.Text = "Browse...";
+            this.opnFileDlgChildBtn.Text = "Проводник...";
             this.opnFileDlgChildBtn.UseVisualStyleBackColor = true;
             this.opnFileDlgChildBtn.Click += new System.EventHandler(this.opnFileDlgChildBtn_Click);
             // 
             // childImgPathTextBox
             // 
             this.childImgPathTextBox.Enabled = false;
-            this.childImgPathTextBox.Location = new System.Drawing.Point(106, 216);
+            this.childImgPathTextBox.Location = new System.Drawing.Point(130, 215);
             this.childImgPathTextBox.Name = "childImgPathTextBox";
             this.childImgPathTextBox.Size = new System.Drawing.Size(135, 20);
             this.childImgPathTextBox.TabIndex = 26;
@@ -71,7 +71,7 @@
             // 
             // childNameTextBox
             // 
-            this.childNameTextBox.Location = new System.Drawing.Point(106, 77);
+            this.childNameTextBox.Location = new System.Drawing.Point(130, 76);
             this.childNameTextBox.Name = "childNameTextBox";
             this.childNameTextBox.Size = new System.Drawing.Size(135, 20);
             this.childNameTextBox.TabIndex = 25;
@@ -79,7 +79,7 @@
             // 
             // childCodeTextBox
             // 
-            this.childCodeTextBox.Location = new System.Drawing.Point(107, 32);
+            this.childCodeTextBox.Location = new System.Drawing.Point(131, 31);
             this.childCodeTextBox.Name = "childCodeTextBox";
             this.childCodeTextBox.Size = new System.Drawing.Size(135, 20);
             this.childCodeTextBox.TabIndex = 24;
@@ -88,53 +88,53 @@
             // childImgPathLable
             // 
             this.childImgPathLable.AutoSize = true;
-            this.childImgPathLable.Location = new System.Drawing.Point(33, 219);
+            this.childImgPathLable.Location = new System.Drawing.Point(17, 218);
             this.childImgPathLable.Name = "childImgPathLable";
-            this.childImgPathLable.Size = new System.Drawing.Size(65, 13);
+            this.childImgPathLable.Size = new System.Drawing.Size(107, 13);
             this.childImgPathLable.TabIndex = 23;
-            this.childImgPathLable.Text = "Image name";
+            this.childImgPathLable.Text = "Название картинки";
             // 
             // childNameLabel
             // 
             this.childNameLabel.AutoSize = true;
-            this.childNameLabel.Location = new System.Drawing.Point(65, 80);
+            this.childNameLabel.Location = new System.Drawing.Point(41, 79);
             this.childNameLabel.Name = "childNameLabel";
-            this.childNameLabel.Size = new System.Drawing.Size(35, 13);
+            this.childNameLabel.Size = new System.Drawing.Size(83, 13);
             this.childNameLabel.TabIndex = 22;
-            this.childNameLabel.Text = "Name";
+            this.childNameLabel.Text = "Наименование";
             // 
             // childCodeLabel
             // 
             this.childCodeLabel.AutoSize = true;
-            this.childCodeLabel.Location = new System.Drawing.Point(68, 35);
+            this.childCodeLabel.Location = new System.Drawing.Point(96, 34);
             this.childCodeLabel.Name = "childCodeLabel";
-            this.childCodeLabel.Size = new System.Drawing.Size(32, 13);
+            this.childCodeLabel.Size = new System.Drawing.Size(26, 13);
             this.childCodeLabel.TabIndex = 21;
-            this.childCodeLabel.Text = "Code";
+            this.childCodeLabel.Text = "Код";
             // 
             // CreateAndEditChildCancelBtn
             // 
-            this.CreateAndEditChildCancelBtn.Location = new System.Drawing.Point(51, 318);
+            this.CreateAndEditChildCancelBtn.Location = new System.Drawing.Point(75, 317);
             this.CreateAndEditChildCancelBtn.Name = "CreateAndEditChildCancelBtn";
             this.CreateAndEditChildCancelBtn.Size = new System.Drawing.Size(75, 23);
             this.CreateAndEditChildCancelBtn.TabIndex = 20;
-            this.CreateAndEditChildCancelBtn.Text = "Cancel";
+            this.CreateAndEditChildCancelBtn.Text = "Отмена";
             this.CreateAndEditChildCancelBtn.UseVisualStyleBackColor = true;
             this.CreateAndEditChildCancelBtn.Click += new System.EventHandler(this.CreateAndEditChildCancelBtn_Click);
             // 
             // CreateAndEditChildSaveBtn
             // 
-            this.CreateAndEditChildSaveBtn.Location = new System.Drawing.Point(237, 319);
+            this.CreateAndEditChildSaveBtn.Location = new System.Drawing.Point(261, 318);
             this.CreateAndEditChildSaveBtn.Name = "CreateAndEditChildSaveBtn";
             this.CreateAndEditChildSaveBtn.Size = new System.Drawing.Size(75, 23);
             this.CreateAndEditChildSaveBtn.TabIndex = 19;
-            this.CreateAndEditChildSaveBtn.Text = "Save";
+            this.CreateAndEditChildSaveBtn.Text = "Сохранить";
             this.CreateAndEditChildSaveBtn.UseVisualStyleBackColor = true;
             this.CreateAndEditChildSaveBtn.Click += new System.EventHandler(this.CreateAndEditChildSaveBtn_Click);
             // 
             // childSimpleNameTextBox
             // 
-            this.childSimpleNameTextBox.Location = new System.Drawing.Point(107, 123);
+            this.childSimpleNameTextBox.Location = new System.Drawing.Point(131, 122);
             this.childSimpleNameTextBox.Name = "childSimpleNameTextBox";
             this.childSimpleNameTextBox.Size = new System.Drawing.Size(135, 20);
             this.childSimpleNameTextBox.TabIndex = 29;
@@ -143,16 +143,16 @@
             // childSimpleNameLabel
             // 
             this.childSimpleNameLabel.AutoSize = true;
-            this.childSimpleNameLabel.Location = new System.Drawing.Point(33, 126);
+            this.childSimpleNameLabel.Location = new System.Drawing.Point(49, 125);
             this.childSimpleNameLabel.Name = "childSimpleNameLabel";
-            this.childSimpleNameLabel.Size = new System.Drawing.Size(67, 13);
+            this.childSimpleNameLabel.Size = new System.Drawing.Size(73, 13);
             this.childSimpleNameLabel.TabIndex = 28;
-            this.childSimpleNameLabel.Text = "Simple name";
+            this.childSimpleNameLabel.Text = "Простое имя";
             // 
             // childGroupCodeTextBox
             // 
             this.childGroupCodeTextBox.Enabled = false;
-            this.childGroupCodeTextBox.Location = new System.Drawing.Point(106, 171);
+            this.childGroupCodeTextBox.Location = new System.Drawing.Point(130, 170);
             this.childGroupCodeTextBox.Name = "childGroupCodeTextBox";
             this.childGroupCodeTextBox.Size = new System.Drawing.Size(135, 20);
             this.childGroupCodeTextBox.TabIndex = 31;
@@ -160,19 +160,19 @@
             // childGroupCodeLabel
             // 
             this.childGroupCodeLabel.AutoSize = true;
-            this.childGroupCodeLabel.Location = new System.Drawing.Point(37, 174);
+            this.childGroupCodeLabel.Location = new System.Drawing.Point(57, 173);
             this.childGroupCodeLabel.Name = "childGroupCodeLabel";
-            this.childGroupCodeLabel.Size = new System.Drawing.Size(63, 13);
+            this.childGroupCodeLabel.Size = new System.Drawing.Size(65, 13);
             this.childGroupCodeLabel.TabIndex = 30;
-            this.childGroupCodeLabel.Text = "Group code";
+            this.childGroupCodeLabel.Text = "Код группы";
             // 
             // radioBtnsStoragePanel
             // 
             this.radioBtnsStoragePanel.Controls.Add(this.addToTheEndRadioBtn);
             this.radioBtnsStoragePanel.Controls.Add(this.addAfterSelectedRadioBtn);
-            this.radioBtnsStoragePanel.Location = new System.Drawing.Point(88, 259);
+            this.radioBtnsStoragePanel.Location = new System.Drawing.Point(88, 258);
             this.radioBtnsStoragePanel.Name = "radioBtnsStoragePanel";
-            this.radioBtnsStoragePanel.Size = new System.Drawing.Size(174, 53);
+            this.radioBtnsStoragePanel.Size = new System.Drawing.Size(212, 53);
             this.radioBtnsStoragePanel.TabIndex = 32;
             // 
             // addToTheEndRadioBtn
@@ -181,10 +181,10 @@
             this.addToTheEndRadioBtn.Checked = true;
             this.addToTheEndRadioBtn.Location = new System.Drawing.Point(19, 3);
             this.addToTheEndRadioBtn.Name = "addToTheEndRadioBtn";
-            this.addToTheEndRadioBtn.Size = new System.Drawing.Size(120, 17);
+            this.addToTheEndRadioBtn.Size = new System.Drawing.Size(156, 17);
             this.addToTheEndRadioBtn.TabIndex = 19;
             this.addToTheEndRadioBtn.TabStop = true;
-            this.addToTheEndRadioBtn.Text = "Add to the last page";
+            this.addToTheEndRadioBtn.Text = "Добавить в конец списка";
             this.addToTheEndRadioBtn.UseVisualStyleBackColor = true;
             // 
             // addAfterSelectedRadioBtn
@@ -192,9 +192,9 @@
             this.addAfterSelectedRadioBtn.AutoSize = true;
             this.addAfterSelectedRadioBtn.Location = new System.Drawing.Point(19, 26);
             this.addAfterSelectedRadioBtn.Name = "addAfterSelectedRadioBtn";
-            this.addAfterSelectedRadioBtn.Size = new System.Drawing.Size(111, 17);
+            this.addAfterSelectedRadioBtn.Size = new System.Drawing.Size(172, 17);
             this.addAfterSelectedRadioBtn.TabIndex = 20;
-            this.addAfterSelectedRadioBtn.Text = "Add after selected";
+            this.addAfterSelectedRadioBtn.Text = "Добавить после выбранного";
             this.addAfterSelectedRadioBtn.UseVisualStyleBackColor = true;
             // 
             // errorProvider1
@@ -205,7 +205,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(374, 354);
+            this.ClientSize = new System.Drawing.Size(398, 361);
             this.Controls.Add(this.radioBtnsStoragePanel);
             this.Controls.Add(this.childGroupCodeTextBox);
             this.Controls.Add(this.childGroupCodeLabel);

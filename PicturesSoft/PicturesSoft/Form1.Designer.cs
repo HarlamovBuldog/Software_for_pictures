@@ -34,7 +34,6 @@
             this.createNewItemBtn = new System.Windows.Forms.Button();
             this.editSelectedBtn = new System.Windows.Forms.Button();
             this.deleteSelectedBtn = new System.Windows.Forms.Button();
-            this.createFinalXmlBtn = new System.Windows.Forms.Button();
             this.navBtwPagesTableLayout = new System.Windows.Forms.TableLayoutPanel();
             this.moveBackBetweenPagesBtn = new System.Windows.Forms.Button();
             this.moveForwardBetweenPagesBtn = new System.Windows.Forms.Button();
@@ -50,6 +49,7 @@
             this.uploadInfoToCashBoxBtn = new System.Windows.Forms.Button();
             this.getTemplateFromCashBoxBtn = new System.Windows.Forms.Button();
             this.selectAllCashBoxesCheckBox = new System.Windows.Forms.CheckBox();
+            this.catalogOrientationLabel = new System.Windows.Forms.Label();
             this.moveObjectsBtnPanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -57,9 +57,9 @@
             // 
             this.BackToGroupsBtn.Location = new System.Drawing.Point(742, 209);
             this.BackToGroupsBtn.Name = "BackToGroupsBtn";
-            this.BackToGroupsBtn.Size = new System.Drawing.Size(89, 23);
+            this.BackToGroupsBtn.Size = new System.Drawing.Size(175, 23);
             this.BackToGroupsBtn.TabIndex = 2;
-            this.BackToGroupsBtn.Text = "Back to groups";
+            this.BackToGroupsBtn.Text = "Вернуться назад к группам";
             this.BackToGroupsBtn.UseVisualStyleBackColor = true;
             this.BackToGroupsBtn.Click += new System.EventHandler(this.BackToGroupsBtn_Click);
             // 
@@ -95,9 +95,9 @@
             // 
             this.createNewItemBtn.Location = new System.Drawing.Point(742, 97);
             this.createNewItemBtn.Name = "createNewItemBtn";
-            this.createNewItemBtn.Size = new System.Drawing.Size(75, 23);
+            this.createNewItemBtn.Size = new System.Drawing.Size(121, 23);
             this.createNewItemBtn.TabIndex = 5;
-            this.createNewItemBtn.Text = "Create";
+            this.createNewItemBtn.Text = "Создать";
             this.createNewItemBtn.UseVisualStyleBackColor = true;
             this.createNewItemBtn.Click += new System.EventHandler(this.createNewItemBtn_Click);
             // 
@@ -105,9 +105,9 @@
             // 
             this.editSelectedBtn.Location = new System.Drawing.Point(742, 126);
             this.editSelectedBtn.Name = "editSelectedBtn";
-            this.editSelectedBtn.Size = new System.Drawing.Size(75, 23);
+            this.editSelectedBtn.Size = new System.Drawing.Size(121, 23);
             this.editSelectedBtn.TabIndex = 6;
-            this.editSelectedBtn.Text = "Edit";
+            this.editSelectedBtn.Text = "Редактировать";
             this.editSelectedBtn.UseVisualStyleBackColor = true;
             this.editSelectedBtn.Click += new System.EventHandler(this.editSelectedBtn_Click);
             // 
@@ -115,21 +115,11 @@
             // 
             this.deleteSelectedBtn.Location = new System.Drawing.Point(742, 155);
             this.deleteSelectedBtn.Name = "deleteSelectedBtn";
-            this.deleteSelectedBtn.Size = new System.Drawing.Size(75, 23);
+            this.deleteSelectedBtn.Size = new System.Drawing.Size(121, 23);
             this.deleteSelectedBtn.TabIndex = 7;
-            this.deleteSelectedBtn.Text = "Delete";
+            this.deleteSelectedBtn.Text = "Удалить";
             this.deleteSelectedBtn.UseVisualStyleBackColor = true;
             this.deleteSelectedBtn.Click += new System.EventHandler(this.deleteSelectedBtn_Click);
-            // 
-            // createFinalXmlBtn
-            // 
-            this.createFinalXmlBtn.Location = new System.Drawing.Point(892, 471);
-            this.createFinalXmlBtn.Name = "createFinalXmlBtn";
-            this.createFinalXmlBtn.Size = new System.Drawing.Size(75, 23);
-            this.createFinalXmlBtn.TabIndex = 8;
-            this.createFinalXmlBtn.Text = "Create final xml";
-            this.createFinalXmlBtn.UseVisualStyleBackColor = true;
-            this.createFinalXmlBtn.Click += new System.EventHandler(this.createFinalXmlBtn_Click);
             // 
             // navBtwPagesTableLayout
             // 
@@ -176,11 +166,11 @@
             // moveObjectsPanelLabel
             // 
             this.moveObjectsPanelLabel.AutoSize = true;
-            this.moveObjectsPanelLabel.Location = new System.Drawing.Point(67, 9);
+            this.moveObjectsPanelLabel.Location = new System.Drawing.Point(40, 9);
             this.moveObjectsPanelLabel.Name = "moveObjectsPanelLabel";
-            this.moveObjectsPanelLabel.Size = new System.Drawing.Size(71, 13);
+            this.moveObjectsPanelLabel.Size = new System.Drawing.Size(131, 13);
             this.moveObjectsPanelLabel.TabIndex = 4;
-            this.moveObjectsPanelLabel.Text = "Move objects";
+            this.moveObjectsPanelLabel.Text = "Перемещение объектов";
             // 
             // moveObjLeftBtn
             // 
@@ -278,11 +268,22 @@
             this.selectAllCashBoxesCheckBox.UseVisualStyleBackColor = true;
             this.selectAllCashBoxesCheckBox.CheckedChanged += new System.EventHandler(this.selectAllCashBoxesCheckBox_CheckedChanged);
             // 
+            // catalogOrientationLabel
+            // 
+            this.catalogOrientationLabel.AutoSize = true;
+            this.catalogOrientationLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.catalogOrientationLabel.Location = new System.Drawing.Point(328, 65);
+            this.catalogOrientationLabel.Name = "catalogOrientationLabel";
+            this.catalogOrientationLabel.Size = new System.Drawing.Size(99, 25);
+            this.catalogOrientationLabel.TabIndex = 25;
+            this.catalogOrientationLabel.Text = "Каталог";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1046, 551);
+            this.Controls.Add(this.catalogOrientationLabel);
             this.Controls.Add(this.selectAllCashBoxesCheckBox);
             this.Controls.Add(this.getTemplateFromCashBoxBtn);
             this.Controls.Add(this.uploadInfoToCashBoxBtn);
@@ -292,7 +293,6 @@
             this.Controls.Add(this.moveForwardBetweenPagesBtn);
             this.Controls.Add(this.moveBackBetweenPagesBtn);
             this.Controls.Add(this.navBtwPagesTableLayout);
-            this.Controls.Add(this.createFinalXmlBtn);
             this.Controls.Add(this.childsListView);
             this.Controls.Add(this.deleteSelectedBtn);
             this.Controls.Add(this.editSelectedBtn);
@@ -318,7 +318,6 @@
         private System.Windows.Forms.Button createNewItemBtn;
         private System.Windows.Forms.Button editSelectedBtn;
         private System.Windows.Forms.Button deleteSelectedBtn;
-        private System.Windows.Forms.Button createFinalXmlBtn;
         private System.Windows.Forms.TableLayoutPanel navBtwPagesTableLayout;
         private System.Windows.Forms.Button moveBackBetweenPagesBtn;
         private System.Windows.Forms.Button moveForwardBetweenPagesBtn;
@@ -334,6 +333,7 @@
         private System.Windows.Forms.Button uploadInfoToCashBoxBtn;
         private System.Windows.Forms.Button getTemplateFromCashBoxBtn;
         private System.Windows.Forms.CheckBox selectAllCashBoxesCheckBox;
+        private System.Windows.Forms.Label catalogOrientationLabel;
     }
 }
 

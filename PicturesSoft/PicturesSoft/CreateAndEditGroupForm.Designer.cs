@@ -48,11 +48,11 @@
             // 
             // opnFileDlgGrBtn
             // 
-            this.opnFileDlgGrBtn.Location = new System.Drawing.Point(291, 126);
+            this.opnFileDlgGrBtn.Location = new System.Drawing.Point(280, 126);
             this.opnFileDlgGrBtn.Name = "opnFileDlgGrBtn";
-            this.opnFileDlgGrBtn.Size = new System.Drawing.Size(65, 19);
+            this.opnFileDlgGrBtn.Size = new System.Drawing.Size(92, 25);
             this.opnFileDlgGrBtn.TabIndex = 18;
-            this.opnFileDlgGrBtn.Text = "Browse...";
+            this.opnFileDlgGrBtn.Text = "Проводник...";
             this.opnFileDlgGrBtn.UseVisualStyleBackColor = true;
             this.opnFileDlgGrBtn.Click += new System.EventHandler(this.opnFileDlgGrBtn_Click);
             // 
@@ -84,29 +84,29 @@
             // imgPathLable
             // 
             this.imgPathLable.AutoSize = true;
-            this.imgPathLable.Location = new System.Drawing.Point(66, 133);
+            this.imgPathLable.Location = new System.Drawing.Point(18, 132);
             this.imgPathLable.Name = "imgPathLable";
-            this.imgPathLable.Size = new System.Drawing.Size(64, 13);
+            this.imgPathLable.Size = new System.Drawing.Size(107, 13);
             this.imgPathLable.TabIndex = 14;
-            this.imgPathLable.Text = "ImageName";
+            this.imgPathLable.Text = "Название картинки";
             // 
             // groupNameLabel
             // 
             this.groupNameLabel.AutoSize = true;
-            this.groupNameLabel.Location = new System.Drawing.Point(89, 83);
+            this.groupNameLabel.Location = new System.Drawing.Point(41, 87);
             this.groupNameLabel.Name = "groupNameLabel";
-            this.groupNameLabel.Size = new System.Drawing.Size(35, 13);
+            this.groupNameLabel.Size = new System.Drawing.Size(83, 13);
             this.groupNameLabel.TabIndex = 13;
-            this.groupNameLabel.Text = "Name";
+            this.groupNameLabel.Text = "Наименование";
             // 
             // groupIdName
             // 
             this.groupIdName.AutoSize = true;
-            this.groupIdName.Location = new System.Drawing.Point(108, 42);
+            this.groupIdName.Location = new System.Drawing.Point(99, 38);
             this.groupIdName.Name = "groupIdName";
-            this.groupIdName.Size = new System.Drawing.Size(16, 13);
+            this.groupIdName.Size = new System.Drawing.Size(26, 13);
             this.groupIdName.TabIndex = 12;
-            this.groupIdName.Text = "Id";
+            this.groupIdName.Text = "Код";
             // 
             // CreateAndEditGrCancelBtn
             // 
@@ -114,7 +114,7 @@
             this.CreateAndEditGrCancelBtn.Name = "CreateAndEditGrCancelBtn";
             this.CreateAndEditGrCancelBtn.Size = new System.Drawing.Size(75, 23);
             this.CreateAndEditGrCancelBtn.TabIndex = 11;
-            this.CreateAndEditGrCancelBtn.Text = "Cancel";
+            this.CreateAndEditGrCancelBtn.Text = "Отмена";
             this.CreateAndEditGrCancelBtn.UseVisualStyleBackColor = true;
             this.CreateAndEditGrCancelBtn.Click += new System.EventHandler(this.CreateAndEditGrCancelBtn_Click);
             // 
@@ -124,7 +124,7 @@
             this.CreateAndEditGrSaveBtn.Name = "CreateAndEditGrSaveBtn";
             this.CreateAndEditGrSaveBtn.Size = new System.Drawing.Size(75, 23);
             this.CreateAndEditGrSaveBtn.TabIndex = 10;
-            this.CreateAndEditGrSaveBtn.Text = "Save";
+            this.CreateAndEditGrSaveBtn.Text = "Сохранить";
             this.CreateAndEditGrSaveBtn.UseVisualStyleBackColor = true;
             this.CreateAndEditGrSaveBtn.Click += new System.EventHandler(this.CreateAndEditGrSaveBtn_Click);
             // 
@@ -134,10 +134,10 @@
             this.addToTheEndRadioBtn.Checked = true;
             this.addToTheEndRadioBtn.Location = new System.Drawing.Point(19, 3);
             this.addToTheEndRadioBtn.Name = "addToTheEndRadioBtn";
-            this.addToTheEndRadioBtn.Size = new System.Drawing.Size(120, 17);
+            this.addToTheEndRadioBtn.Size = new System.Drawing.Size(156, 17);
             this.addToTheEndRadioBtn.TabIndex = 19;
             this.addToTheEndRadioBtn.TabStop = true;
-            this.addToTheEndRadioBtn.Text = "Add to the last page";
+            this.addToTheEndRadioBtn.Text = "Добавить в конец списка";
             this.addToTheEndRadioBtn.UseVisualStyleBackColor = true;
             // 
             // addAfterSelectedRadioBtn
@@ -145,9 +145,9 @@
             this.addAfterSelectedRadioBtn.AutoSize = true;
             this.addAfterSelectedRadioBtn.Location = new System.Drawing.Point(19, 26);
             this.addAfterSelectedRadioBtn.Name = "addAfterSelectedRadioBtn";
-            this.addAfterSelectedRadioBtn.Size = new System.Drawing.Size(111, 17);
+            this.addAfterSelectedRadioBtn.Size = new System.Drawing.Size(172, 17);
             this.addAfterSelectedRadioBtn.TabIndex = 20;
-            this.addAfterSelectedRadioBtn.Text = "Add after selected";
+            this.addAfterSelectedRadioBtn.Text = "Добавить после выбранного";
             this.addAfterSelectedRadioBtn.UseVisualStyleBackColor = true;
             // 
             // radioBtnsStoragePanel
@@ -156,7 +156,7 @@
             this.radioBtnsStoragePanel.Controls.Add(this.addAfterSelectedRadioBtn);
             this.radioBtnsStoragePanel.Location = new System.Drawing.Point(111, 164);
             this.radioBtnsStoragePanel.Name = "radioBtnsStoragePanel";
-            this.radioBtnsStoragePanel.Size = new System.Drawing.Size(174, 53);
+            this.radioBtnsStoragePanel.Size = new System.Drawing.Size(217, 53);
             this.radioBtnsStoragePanel.TabIndex = 21;
             // 
             // errorProvider1

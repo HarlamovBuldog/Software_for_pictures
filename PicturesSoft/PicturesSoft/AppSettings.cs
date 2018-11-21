@@ -38,8 +38,8 @@ namespace PicturesSoft
 
         private void startBtn_Click(object sender, EventArgs e)
         {
-            ((Form1)this.Owner).DestImgFolderPath = this.destImgFolderTextBox.Text;
-            ((Form1)this.Owner).XmlCnfgFilePath = this.xmlCnfgFilePathTextBox.Text;
+            //((Form1)this.Owner).DestImgFolderPath = this.destImgFolderTextBox.Text;
+            //((Form1)this.Owner).XmlCnfgFilePath = this.xmlCnfgFilePathTextBox.Text;
 
             this.Close();
         }
