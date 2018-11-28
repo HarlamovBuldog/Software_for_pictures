@@ -15,6 +15,10 @@ namespace PicturesSoft
     {
         Create,
         Edit,
-        LoadFromFinalXml
+        LoadFromFinalXml,
+        UploadToCashBoxAndShowNotificationTable,
+        UploadToCashBoxAndShowCorrespondingResults,
+        DownloadFromCashBoxAndShowNotificationTable,
+        DownloadFromCashBoxAndShowCorrespondingResults
     }
 }

@@ -50,6 +50,7 @@
             this.getTemplateFromCashBoxBtn = new System.Windows.Forms.Button();
             this.selectAllCashBoxesCheckBox = new System.Windows.Forms.CheckBox();
             this.catalogOrientationLabel = new System.Windows.Forms.Label();
+            this.testButton = new System.Windows.Forms.Button();
             this.moveObjectsBtnPanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -278,11 +279,22 @@
             this.catalogOrientationLabel.TabIndex = 25;
             this.catalogOrientationLabel.Text = "Каталог";
             // 
+            // testButton
+            // 
+            this.testButton.Location = new System.Drawing.Point(823, 496);
+            this.testButton.Name = "testButton";
+            this.testButton.Size = new System.Drawing.Size(75, 23);
+            this.testButton.TabIndex = 26;
+            this.testButton.Text = "ТЕСТ";
+            this.testButton.UseVisualStyleBackColor = true;
+            this.testButton.Click += new System.EventHandler(this.testButton_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1046, 551);
+            this.Controls.Add(this.testButton);
             this.Controls.Add(this.catalogOrientationLabel);
             this.Controls.Add(this.selectAllCashBoxesCheckBox);
             this.Controls.Add(this.getTemplateFromCashBoxBtn);
@@ -334,6 +346,7 @@
         private System.Windows.Forms.Button getTemplateFromCashBoxBtn;
         private System.Windows.Forms.CheckBox selectAllCashBoxesCheckBox;
         private System.Windows.Forms.Label catalogOrientationLabel;
+        private System.Windows.Forms.Button testButton;
     }
 }
 

@@ -231,10 +231,5 @@ namespace PicturesSoft
 
             return true;
         }
-
-        //need to check connection here
-
-        //((Form1)this.Owner).MakeLocalCatalogCall(serverId,
-        //   port, userName, passwd, dataBaseName);
     }
 }
