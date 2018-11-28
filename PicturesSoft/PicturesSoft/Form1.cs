@@ -1,10 +1,13 @@
-﻿using Renci.SshNet;
+﻿using GroupedListControl;
+using Renci.SshNet;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
@@ -1250,6 +1253,8 @@ namespace PicturesSoft
 
         #endregion //Move objects buttons Events
 
+        #region Events connected with cash boxes checked list view at the left side of the window
+
         private void shopListComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             if(this.selectAllCashBoxesCheckBox.Checked)
@@ -1294,74 +1299,43 @@ namespace PicturesSoft
             }            
         }
 
-        /// <summary>
-        /// Simply download xml config file and all connected images to local folder
-        /// without any checks when local folder is empty.
-        /// </summary>
-        private void GetTemplateFromCashBoxIfLocalFolderIsEmpty(string cashBoxIpAddress)
-        {
-            using (ScpClient clientScp = new Renci.SshNet.ScpClient(cashBoxIpAddress, 22, "tc", "324012"))
-            {
-                try
-                {
-                    clientScp.Connect();
-                    clientScp.Download("/home/tc/storage/crystal-cash/config/plugins/weightCatalog-xml-config.xml",
-                        new FileInfo(XmlCnfgFilePath));
-                    clientScp.Download("/home/tc/storage/crystal-cash/images/", new DirectoryInfo(DestImgFolderPath));
-                    clientScp.Disconnect();
-                    MessageBox.Show("Загрузка файла прошла успешно!", "Информация о загрузке файла с кассы",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    RepositoriesInit();
-                    GroupListViewRedraw();
-
-                    if (!this.createNewItemBtn.Enabled)
-                        this.createNewItemBtn.Enabled = true;
-                }
-                catch(Exception exception)
-                {
-                    MessageBox.Show(exception.Message + "\nПроизошла ошибка подключения к кассе либо выполнения команды" +
-                        "Возможно на кассе отсутствует файл конфигурации." +
-                        "Попробуйте выполнить действие ещё раз.При повтороной ошибке обратитесь к системному администратору.",
-                        "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                finally
-                {
-                    if(clientScp.IsConnected)
-                        clientScp.Disconnect();
-                }                
-            }            
-        }
+        #endregion //Events connected with cash boxes checked list view at the left side of the window
 
         private void getTemplateFromCashBoxBtn_Click(object sender, EventArgs e)
         {
+            DownloadAndCheckTemplateInfoFromCashBox();
+        }
+
+        private void DownloadAndCheckTemplateInfoFromCashBox()
+        {
+            //< Getting list of checked cash boxes from corresponding control
+            //and check if there is more or less then 1 element checked
             var listOfCheckedCashBoxes = this.cashesCheckedListBox.CheckedItems;
 
-            if(listOfCheckedCashBoxes.Count > 1)
+            if (listOfCheckedCashBoxes.Count > 1)
             {
                 MessageBox.Show("Отмечено несколько касс! Загрузить шаблон можно только с одной кассы!",
                     "Внимание!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            else if(listOfCheckedCashBoxes.Count == 0)
+            else if (listOfCheckedCashBoxes.Count == 0)
             {
-                MessageBox.Show("Не отмечено ни одной кассы! Отметьте одно кассу, затем попробуйте ещё раз.",
+                MessageBox.Show("Не отмечено ни одной кассы! Отметьте одну кассу, затем попробуйте ещё раз.",
                     "Внимание!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+            //>
 
             //string cashBoxIpAddress = "192.168.0.224";
 
             string cashBoxIpAddress = ((CashBox)listOfCheckedCashBoxes[0]).IpAddress;
-
-            if (!File.Exists(XmlCnfgFilePath))
-            {
-                GetTemplateFromCashBoxIfLocalFolderIsEmpty(cashBoxIpAddress);
-                return;
-            }
+            string cashBoxNumber = ((CashBox)listOfCheckedCashBoxes[0]).Number;           
 
             bool isFuncNeededToAbort = false;
 
-            //< Downloading AlternativeXmlCnfgFilePath from cash box
+            //< Downloading AlternativeXmlCnfgFilePath from cash box.
+            //We need to download xml config file from REMOTE cash box because
+            //it is hard to read it without downloading (maybe i am wrong, just have chosen easiest way)
             if (File.Exists(AlternativeXmlCnfgFilePath))
             {
                 File.Delete(AlternativeXmlCnfgFilePath);
@@ -1374,212 +1348,421 @@ namespace PicturesSoft
                     client.Connect();
                     client.Download("/home/tc/storage/crystal-cash/config/plugins/weightCatalog-xml-config.xml",
                                new FileInfo(AlternativeXmlCnfgFilePath));
-                    client.Disconnect();
                 }
                 catch (Exception exception)
                 {
                     MessageBox.Show(exception.Message + "\nПроизошла ошибка подключения к кассе либо выполнения команды." +
                         "Возможно на кассе отсутствует файл конфигурации." +
-                        "Попробуйте выполнить действие ещё раз. При повтороной ошибке обратитесь к системному администратору.",
-                        "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        "Попробуйте выполнить действие ещё раз. При повторной ошибке обратитесь к системному администратору.",
+                        "Ошибка. Касса №" + cashBoxNumber + " " + cashBoxIpAddress, 
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
                     isFuncNeededToAbort = true;
                 }
                 finally
                 {
                     if (client.IsConnected)
                         client.Disconnect();
-                }                
+                }
             }
             //>
 
             if (isFuncNeededToAbort)
                 return;
 
-            bool isXmlConfigFileNeededToDownload;
-            List<string> listOfNewDownloadingImageFileNames = new List<string>();
-            List<string> listOfDownloadingImageFileNamesNeedToBeReplaced = new List<string>();
+            //if (File.Exists(UnixSpecifedXmlCnfgFilePath))
+            //    File.Delete(UnixSpecifedXmlCnfgFilePath);
+
+            if (File.Exists(XmlCnfgFilePath))
+                MakeUnixSpecifiedXmlConfigFile();
+
+            //We are using GroupListControl.dll of some guy from github. It's ListView with some overloaded methods.
+            //There is little bit strange way of building this table, but at least it's working as expected.
+            //We are making groupListGroupControl adding ListGroup which can expand or collapse list of corresponding
+            //listViewItems which store info about all file names that CashBox contains. their states and actions need to take.
+            //We are filling these groupListGroupControl on fly by comparing md5 hash of files from cash box with the same files
+            //on local machine.
+
+            //< Making head for SummaryNotification form to fill table there
+            GroupListControl notificationBeforeDownloadGroupListControl = new GroupListControl();
+
+            //column headers for cashbox info
+            ListGroup notificationBeforeDownloadColumnHeadersForCashBoxInfoListGroup = new ListGroup();
+            notificationBeforeDownloadColumnHeadersForCashBoxInfoListGroup.BackColor = Color.Blue;
+            notificationBeforeDownloadColumnHeadersForCashBoxInfoListGroup.Columns.Add("Ip кассы", 120);
+            notificationBeforeDownloadColumnHeadersForCashBoxInfoListGroup.Columns.Add("Номер кассы", 150);
+            notificationBeforeDownloadColumnHeadersForCashBoxInfoListGroup.Columns.Add("Рекомендации", 200);
+            notificationBeforeDownloadGroupListControl.Controls.Add(notificationBeforeDownloadColumnHeadersForCashBoxInfoListGroup);
+
+            //adding info about cashbox
+            ListGroup infoAboutCashBoxWithNestedFilesNotificationInfoBeforeDownloadListGroup = new ListGroup();
+            infoAboutCashBoxWithNestedFilesNotificationInfoBeforeDownloadListGroup.Columns.Add(cashBoxIpAddress, 120);
+            infoAboutCashBoxWithNestedFilesNotificationInfoBeforeDownloadListGroup.Columns.Add(cashBoxNumber, 150);
+            infoAboutCashBoxWithNestedFilesNotificationInfoBeforeDownloadListGroup.Columns.Add("Действий не требуется", 200);
+            //lg.Name = "Group " + i;
+
+            //column headers for files description for corresponding cashbox
+            ListViewItem filesNotificationInfoBeforeDownloadColumHeaderslvi =
+                infoAboutCashBoxWithNestedFilesNotificationInfoBeforeDownloadListGroup.Items.Add("Имя файла");
+            filesNotificationInfoBeforeDownloadColumHeaderslvi.ForeColor = Color.White;
+            filesNotificationInfoBeforeDownloadColumHeaderslvi.BackColor = Color.Blue;
+            filesNotificationInfoBeforeDownloadColumHeaderslvi.SubItems.Add("Состояние");
+            filesNotificationInfoBeforeDownloadColumHeaderslvi.SubItems.Add("Требуется");
+            //>
+
+            //List<KeyValuePair<bool, string>> listOfAllFileNamesNeededToDownloadWithActionIdentif =
+            //new List<KeyValuePair<bool, string>>();
+            bool isXmlConfigFileNeededToDownload = true;
+            //bool = true if file is needed to be replaced.
+            List<KeyValuePair<bool, string>> listOfAllImageFileNamesNeededToDownloadWithReplacementIdentif =
+                new List<KeyValuePair<bool, string>>();
 
             using (SshClient sshClient = new Renci.SshNet.SshClient(cashBoxIpAddress, 22, "tc", "324012"))
             {
-                sshClient.Connect();
-
-                //< assigning result of comparing xml config file size from remote server
-                //with the same file on local machine to isXmlConfigFileNeededToDownload variable
-                //to use it later for making decision about xml config file downloading
-                string xmlConfigFileSizeOnCashBox = sshClient.RunCommand(
-                    "cd /home/tc/storage/crystal-cash/config/plugins; wc -c < weightCatalog-xml-config.xml")
-                    .Result.ToString();
-                xmlConfigFileSizeOnCashBox = xmlConfigFileSizeOnCashBox.Replace("\n", "");
-
-                string xmlConfigFileSizeOnLocalMachine = new FileInfo(XmlCnfgFilePath).Length.ToString();
-                isXmlConfigFileNeededToDownload = !xmlConfigFileSizeOnCashBox.Equals(xmlConfigFileSizeOnLocalMachine);
-                //>
-
-                //< Filling list of all existing image file names according
-                //to xml config file from cash box
-                string listOfAllImageFilesFromCashBoxInOneString =
-                    sshClient.RunCommand("cd /home/tc/storage/crystal-cash/images; ls").Result.ToString();
-                List<string> listOfAllImageFilesFromCashBox =
-                    listOfAllImageFilesFromCashBoxInOneString.Split(new[] { '\n' },
-                    StringSplitOptions.RemoveEmptyEntries).ToList<string>();
-
-                //generally listOfAllImageFileNamesFromXmlConfigFileFromCashBox will be pretty enough
-                //but using additional check is usefull for preventing downloading not existing image
-                //files which cause exception
-                List<string> listOfAllImageFileNamesFromXmlConfigFileFromCashBox = 
-                    GetListOfAllImageFileNamesFromXmlConfigFile(AlternativeXmlCnfgFilePath);
-
-                List<string> listOfAllExistingImageFileNamesAccordingToXmlConfigFileFromCashBox =
-                    new List<string>();
-
-                foreach(string imageFileNameFromXmlConfigFileFromCashBox in
-                    listOfAllImageFileNamesFromXmlConfigFileFromCashBox)
+                try
                 {
-                    if(listOfAllImageFilesFromCashBox.Contains(imageFileNameFromXmlConfigFileFromCashBox))
-                    {
-                        listOfAllExistingImageFileNamesAccordingToXmlConfigFileFromCashBox
-                            .Add(imageFileNameFromXmlConfigFileFromCashBox);
-                    }
-                }
-                //>
+                    sshClient.Connect();
 
-                string[] arrayListOfAllImageFilesOnLocalMachine = Directory.GetFiles(DestImgFolderPath);
-
-                for(int i = 0; i < arrayListOfAllImageFilesOnLocalMachine.Count(); i++)
-                {
-                    string imageFileNameOnLocalMachine = arrayListOfAllImageFilesOnLocalMachine[i];
-                    imageFileNameOnLocalMachine = imageFileNameOnLocalMachine
-                        .Substring(imageFileNameOnLocalMachine.LastIndexOf("\\") + 1);
-                    arrayListOfAllImageFilesOnLocalMachine[i] = imageFileNameOnLocalMachine;
-                }
-
-                //< filling listOfDownloadingImageFileNamesNeedToBeReplaced and
-                //listOfNewDownloadingImageFileNames lists with values
-                foreach (string imageFileNameFromCashBox in listOfAllExistingImageFileNamesAccordingToXmlConfigFileFromCashBox)
-                {
-                    if (arrayListOfAllImageFilesOnLocalMachine.Contains<string>(imageFileNameFromCashBox))
-                    {
-                        string imageFileSizeFromCashBox =
-                        sshClient.RunCommand("cd /home/tc/storage/crystal-cash/images; wc -c < " + imageFileNameFromCashBox)
+                    //< assigning result of comparing xml config file MD5 hash sum from remote server
+                    //with the same file on local machine to isXmlConfigFileNeededToDownload variable
+                    //to use it later for making decision about xml config file downloading
+                    string xmlConfigMD5HashSumOnCashBox = sshClient.RunCommand(
+                        "cd /home/tc/storage/crystal-cash/config/plugins; md5sum weightCatalog-xml-config.xml")
                         .Result.ToString();
-                        imageFileSizeFromCashBox = imageFileSizeFromCashBox.Replace("\n", "");
+                    xmlConfigMD5HashSumOnCashBox = xmlConfigMD5HashSumOnCashBox
+                        .Substring(0, xmlConfigMD5HashSumOnCashBox.IndexOf(' '));
 
-                        string imageFileSizeOnLocalMachine =
-                            new FileInfo(DestImgFolderPath + @"\" + imageFileNameFromCashBox).Length.ToString();
+                    ListViewItem xmlConfigItem = infoAboutCashBoxWithNestedFilesNotificationInfoBeforeDownloadListGroup
+                        .Items.Add("weightCatalog-xml-config.xml");                    
 
-                        if (!imageFileSizeFromCashBox.Equals(imageFileSizeOnLocalMachine))
+                    if (File.Exists(UnixSpecifedXmlCnfgFilePath) && File.Exists(XmlCnfgFilePath))
+                    {
+                        string xmlConfigMD5HashSumOnLocalMachine;
+                        using (var md5 = MD5.Create())
                         {
-                            listOfDownloadingImageFileNamesNeedToBeReplaced.Add(imageFileNameFromCashBox);
+                            using (var stream = File.OpenRead(UnixSpecifedXmlCnfgFilePath))
+                            {
+                                var hash = md5.ComputeHash(stream);
+                                xmlConfigMD5HashSumOnLocalMachine = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+                            }
+                        }
+                        isXmlConfigFileNeededToDownload = !xmlConfigMD5HashSumOnCashBox.Equals(xmlConfigMD5HashSumOnLocalMachine);
+
+                        if(isXmlConfigFileNeededToDownload)
+                        {
+                            xmlConfigItem.SubItems.Add("Присутствует");
+                            xmlConfigItem.SubItems.Add("Загрузка с заменой");
+                            //listOfAllImageFileNamesNeededToDownloadWithReplacementIdentif.Add(
+                               // new KeyValuePair<bool, string>(true, "weightCatalog-xml-config.xml"));
+                        }
+                        else
+                        {
+                            xmlConfigItem.SubItems.Add("Присутствует");
+                            xmlConfigItem.SubItems.Add("Ничего");
                         }
                     }
                     else
                     {
-                        listOfNewDownloadingImageFileNames.Add(imageFileNameFromCashBox);
+                        xmlConfigItem.SubItems.Add("Отсутствует");
+                        xmlConfigItem.SubItems.Add("Загрузка");
+                        //listOfAllImageFileNamesNeededToDownloadWithReplacementIdentif.Add(
+                               // new KeyValuePair<bool, string>(false, "weightCatalog-xml-config.xml"));
+                    }                    
+                    //>
+
+                    //< Filling list of all existing image file names according
+                    //to xml config file from cash box
+                    string listOfAllImageFilesFromCashBoxInOneString =
+                        sshClient.RunCommand("cd /home/tc/storage/crystal-cash/images; ls").Result.ToString();
+                    List<string> listOfAllImageFilesFromCashBox =
+                        listOfAllImageFilesFromCashBoxInOneString.Split(new[] { '\n' },
+                        StringSplitOptions.RemoveEmptyEntries).ToList<string>();
+
+                    //generally listOfAllImageFileNamesFromXmlConfigFileFromCashBox will be pretty enough
+                    //but using additional check is usefull for preventing downloading not existing image
+                    //files which cause exception
+                    List<string> listOfAllImageFileNamesFromXmlConfigFileFromCashBox =
+                        GetListOfAllImageFileNamesFromXmlConfigFile(AlternativeXmlCnfgFilePath);
+
+                    List<string> listOfAllExistingImageFileNamesAccordingToXmlConfigFileFromCashBox =
+                        new List<string>();
+
+                    foreach (string imageFileNameFromXmlConfigFileFromCashBox in
+                        listOfAllImageFileNamesFromXmlConfigFileFromCashBox)
+                    {
+                        if (listOfAllImageFilesFromCashBox.Contains(imageFileNameFromXmlConfigFileFromCashBox))
+                        {
+                            listOfAllExistingImageFileNamesAccordingToXmlConfigFileFromCashBox
+                                .Add(imageFileNameFromXmlConfigFileFromCashBox);
+                        }
+                    }
+                    //>
+
+                    string[] arrayListOfAllImageFilesOnLocalMachine = Directory.GetFiles(DestImgFolderPath);
+
+                    for (int i = 0; i < arrayListOfAllImageFilesOnLocalMachine.Count(); i++)
+                    {
+                        string imageFileNameOnLocalMachine = arrayListOfAllImageFilesOnLocalMachine[i];
+                        imageFileNameOnLocalMachine = imageFileNameOnLocalMachine
+                            .Substring(imageFileNameOnLocalMachine.LastIndexOf("\\") + 1);
+                        arrayListOfAllImageFilesOnLocalMachine[i] = imageFileNameOnLocalMachine;
+                    }
+
+                    //< Filling infoAboutCashBoxWithNestedFilesDownloadingResultsListGroup with
+                    //ListViewItems using MD5 hash sum comparison
+                    foreach (string imageFileNameFromCashBox in listOfAllExistingImageFileNamesAccordingToXmlConfigFileFromCashBox)
+                    {
+                        ListViewItem imageInfoItem = infoAboutCashBoxWithNestedFilesNotificationInfoBeforeDownloadListGroup
+                            .Items.Add(imageFileNameFromCashBox);
+
+                        if (arrayListOfAllImageFilesOnLocalMachine.Contains<string>(imageFileNameFromCashBox))
+                        {
+                            //Note: RunCommand method will not throw exception if there is no such file. It will just return
+                            //corresponding error message. But at the same time it can throw connection exception.
+                            string imageFileMD5HashSumFromCashBox =
+                            sshClient.RunCommand("cd /home/tc/storage/crystal-cash/images; md5sum " + imageFileNameFromCashBox)
+                            .Result.ToString();
+                            imageFileMD5HashSumFromCashBox = imageFileMD5HashSumFromCashBox
+                            .Substring(0, imageFileMD5HashSumFromCashBox.IndexOf(' '));
+
+                            string imageFileMD5HashSumOnLocalMachine;
+                            using (var md5 = MD5.Create())
+                            {
+                                using (var stream = File.OpenRead(DestImgFolderPath + @"\" + imageFileNameFromCashBox))
+                                {
+                                    var hash = md5.ComputeHash(stream);
+                                    imageFileMD5HashSumOnLocalMachine = BitConverter.ToString(hash).Replace("-", "")
+                                        .ToLowerInvariant();
+                                }
+                            }
+
+                            if (!imageFileMD5HashSumFromCashBox.Equals(imageFileMD5HashSumOnLocalMachine))
+                            {
+                                imageInfoItem.SubItems.Add("Присутствует");
+                                imageInfoItem.SubItems.Add("Загрузка с заменой");
+                                listOfAllImageFileNamesNeededToDownloadWithReplacementIdentif.Add(
+                                new KeyValuePair<bool, string>(true, imageFileNameFromCashBox));
+                            }
+                            else
+                            {
+                                imageInfoItem.SubItems.Add("Присутствует");
+                                imageInfoItem.SubItems.Add("Ничего");
+                            }
+                        }
+                        else
+                        {
+                            imageInfoItem.SubItems.Add("Отсутствует");
+                            imageInfoItem.SubItems.Add("Загрузка");
+                            listOfAllImageFileNamesNeededToDownloadWithReplacementIdentif.Add(
+                                new KeyValuePair<bool, string>(false, imageFileNameFromCashBox));
+                        }
+                    }
+                    //>                   
+                }
+                catch(Exception exception)
+                {
+                    MessageBox.Show(exception.Message + "\nПроизошла ошибка подключения к кассе либо выполнения команды." +
+                        "Попробуйте выполнить действие ещё раз. При повторной ошибке обратитесь к системному администратору.",
+                        "Ошибка. Касса №" + cashBoxNumber + " " + cashBoxIpAddress,
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    isFuncNeededToAbort = true;
+                }
+                finally
+                {
+                    if(sshClient.IsConnected)
+                        sshClient.Disconnect();
+                }                
+            }
+
+            if (isFuncNeededToAbort)
+                return;
+
+            //We are changing text of "status" field for corresponding cashbox if needed. 
+            //By default it's set to "No actions needed".
+            //If there is any file that need some actions we change cash box text of "status" field to "Actions needed"
+            foreach(ListViewItem lvi in infoAboutCashBoxWithNestedFilesNotificationInfoBeforeDownloadListGroup.Items)
+            {
+                foreach(ListViewItem.ListViewSubItem subLvi in lvi.SubItems)
+                {
+                    if(subLvi.Text.Equals("Загрузка с заменой") || subLvi.Text.Equals("Загрузка"))
+                    {
+                        infoAboutCashBoxWithNestedFilesNotificationInfoBeforeDownloadListGroup
+                            .Columns[2].Text = "Требуются действия";
+                        break;
                     }
                 }
-                //>
+            }
 
-                sshClient.Disconnect();
-            }                  
+            notificationBeforeDownloadGroupListControl.Controls
+                .Add(infoAboutCashBoxWithNestedFilesNotificationInfoBeforeDownloadListGroup);
+
+            SummaryNotificationForm summaryNotificationFormBeforeDownload = 
+                new SummaryNotificationForm(notificationBeforeDownloadGroupListControl,
+                    new WorkMode() { WorkType = WorkModeType.DownloadFromCashBoxAndShowNotificationTable});
+
+            DialogResult userDecision = summaryNotificationFormBeforeDownload.ShowDialog();
+
+            if (userDecision == DialogResult.Cancel || userDecision == DialogResult.No || userDecision == DialogResult.Abort)
+                return;
+
+            ILookup<bool, string> lookupOfAllImageFileNamesNeededToDownloadGrouppedByReplacementIdentif = 
+                listOfAllImageFileNamesNeededToDownloadWithReplacementIdentif.ToLookup(kvp => kvp.Key, kvp => kvp.Value);
+
+            GroupListControl downloadingResultsGroupListControl = new GroupListControl();
+            
+            //column headers for cashbox
+            ListGroup downloadingResultsColumnHeadersForCashBoxInfoListGroup = new ListGroup();
+            downloadingResultsColumnHeadersForCashBoxInfoListGroup.BackColor = Color.Blue;
+            downloadingResultsColumnHeadersForCashBoxInfoListGroup.Columns.Add("Ip Адресс кассы", 120);
+            downloadingResultsColumnHeadersForCashBoxInfoListGroup.Columns.Add("Номер кассы", 150);
+            downloadingResultsColumnHeadersForCashBoxInfoListGroup.Columns.Add("Результат", 150);
+            downloadingResultsGroupListControl.Controls.Add(downloadingResultsColumnHeadersForCashBoxInfoListGroup);
+
+            //adding info about cashbox
+            ListGroup infoAboutCashBoxWithNestedFilesDownloadingResultsListGroup = new ListGroup();
+            infoAboutCashBoxWithNestedFilesDownloadingResultsListGroup.Columns.Add(cashBoxIpAddress, 120);
+            infoAboutCashBoxWithNestedFilesDownloadingResultsListGroup.Columns.Add(cashBoxNumber, 150);
+            infoAboutCashBoxWithNestedFilesDownloadingResultsListGroup.Columns.Add("Успешно", 150);
+            //lg.Name = "Group " + i;
+            
+            //column headers for files description
+            ListViewItem filesDonwloadingResultsColumHeaderslvi = infoAboutCashBoxWithNestedFilesDownloadingResultsListGroup
+                .Items.Add("Имя файла");
+            filesDonwloadingResultsColumHeaderslvi.ForeColor = Color.White;
+            filesDonwloadingResultsColumHeaderslvi.BackColor = Color.Blue;
+            filesDonwloadingResultsColumHeaderslvi.SubItems.Add("Операция");
+            filesDonwloadingResultsColumHeaderslvi.SubItems.Add("Результат");
 
             using (var client = new Renci.SshNet.ScpClient(cashBoxIpAddress, 22, "tc", "324012"))
             {
-                client.Connect();
-
-                if (isXmlConfigFileNeededToDownload)
+                try
                 {
-                    var result = MessageBox.Show("Подтвердите замену файла конфигурации weightCatalog-xml-config.xml",
-                        "Информация о замене файла конфигурации при загрузке с кассы",
-                        MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+                    client.Connect();
 
-                    if (result == DialogResult.OK)
+                    if (isXmlConfigFileNeededToDownload)
                     {
+                        ListViewItem xmlConfigItem = infoAboutCashBoxWithNestedFilesDownloadingResultsListGroup
+                            .Items.Add("weightCatalog-xml-config.xml");
+
                         if (File.Exists(XmlCnfgFilePath))
                         {
+                            xmlConfigItem.SubItems.Add("Замена");
                             File.Delete(XmlCnfgFilePath);
                         }
-
-                        client.Download("/home/tc/storage/crystal-cash/config/plugins/weightCatalog-xml-config.xml",
-                            new FileInfo(XmlCnfgFilePath));
-
-                        RepositoriesInit();
-                    }
-                }
-                else
-                    MessageBox.Show("Файл конфигурации weightCatalog-xml-config.xml не требует замены",
-                        "Информация о замене файла конфигурации при загрузке с кассы",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                StringBuilder infoAboutNewImageFiles = new StringBuilder();
-
-                if(listOfNewDownloadingImageFileNames.Any())
-                {
-                    infoAboutNewImageFiles.Append("Новые файлы: ");
-                    foreach (string newImageFileName in listOfNewDownloadingImageFileNames)
-                    {
-                        infoAboutNewImageFiles.AppendLine(newImageFileName);
-                    }
-
-                    var result = MessageBox.Show(infoAboutNewImageFiles.ToString() + 
-                        "\nПодтвердите скачивание новых файлов", "Информация о новых файлах при загрузке с кассы", 
-                        MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
-
-                    if(result == DialogResult.OK)
-                    {
-                        foreach (string newImageFileName in listOfNewDownloadingImageFileNames)
-                        {                                
-                            client.Download("/home/tc/storage/crystal-cash/images/" + newImageFileName,
-                                new FileInfo(DestImgFolderPath + @"\" + newImageFileName));
-                        }
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("Нет новых файлов для скачивания.", "Информация о новых файлах при загрузке с кассы",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-
-                StringBuilder infoAboutImageFilesNeedToBeReplaced = new StringBuilder();
-
-                if(listOfDownloadingImageFileNamesNeedToBeReplaced.Any())
-                {
-                    infoAboutImageFilesNeedToBeReplaced.Append("Файлы, которые будут заменены:");
-                    foreach (string imageFileNamesNeedToBeReplaced in listOfDownloadingImageFileNamesNeedToBeReplaced)
-                    {
-                        infoAboutImageFilesNeedToBeReplaced.AppendLine(imageFileNamesNeedToBeReplaced);
-                    }
-
-                    var result = MessageBox.Show(infoAboutImageFilesNeedToBeReplaced.ToString() +
-                        "\nПодтвердите замену файлов", "Информация о файлах для скачивания с заменой при загрузке с кассы",
-                        MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
-
-                    if (result == DialogResult.OK)
-                    {
-                        foreach (string imageFileNameToReplace in listOfDownloadingImageFileNamesNeedToBeReplaced)
+                        else
                         {
-                            client.Download("/home/tc/storage/crystal-cash/images/" + imageFileNameToReplace,
-                                new FileInfo(DestImgFolderPath + @"\" + imageFileNameToReplace));
+                            xmlConfigItem.SubItems.Add("Скачивание");
+                        }
+
+                        try
+                        {
+                            client.Download("/home/tc/storage/crystal-cash/config/plugins/weightCatalog-xml-config.xml",
+                            new FileInfo(XmlCnfgFilePath));
+                            xmlConfigItem.SubItems.Add("Успешно");
+                        }
+                        catch (Exception excep)
+                        {
+                            //write exception to log here
+                            //listOfImageFilesThatCauseErrors.Add("weightCatalog-xml-config.xml");
+                            xmlConfigItem.SubItems.Add("Ошибка");
                         }
                     }
-                }
-                else
-                {
-                    MessageBox.Show("Нет файлов для скачивания с заменой.",
-                        "Информация о файлах для скачивания с заменой при загрузке с кассы",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }               
 
-                client.Disconnect();
+                    //< Downloading images that are need to be replaced (that have the same names on LOCAL machine) 
+                    //from REMOTE cash box
+                    foreach (string fileNameNeededToDownloadWithReplacement 
+                        in lookupOfAllImageFileNamesNeededToDownloadGrouppedByReplacementIdentif[true])
+                    {
+                        ListViewItem imageFileLvi = infoAboutCashBoxWithNestedFilesDownloadingResultsListGroup
+                            .Items.Add(fileNameNeededToDownloadWithReplacement);
+                        imageFileLvi.SubItems.Add("Скачивание с заменой");
+
+                        try
+                        {
+                            client.Download("/home/tc/storage/crystal-cash/images/" + fileNameNeededToDownloadWithReplacement,
+                            new FileInfo(DestImgFolderPath + @"\" + fileNameNeededToDownloadWithReplacement));
+                            imageFileLvi.SubItems.Add("Успешно");
+                        }
+                        catch (Exception excep)
+                        {
+                            //write exception to log here
+                            imageFileLvi.SubItems.Add("Ошибка");
+                        }
+                    }
+                    //>
+
+                    //< Downloading new images (that are not exist on LOCAL machine) from REMOTE cash box
+                    foreach (string fileNameNeededToDownloadWithoutReplacement
+                        in lookupOfAllImageFileNamesNeededToDownloadGrouppedByReplacementIdentif[false])
+                    {
+                        ListViewItem imageFileLvi = infoAboutCashBoxWithNestedFilesDownloadingResultsListGroup
+                            .Items.Add(fileNameNeededToDownloadWithoutReplacement);
+                        imageFileLvi.SubItems.Add("Скачивание");
+
+                        try
+                        {
+                            client.Download("/home/tc/storage/crystal-cash/images/" + fileNameNeededToDownloadWithoutReplacement,
+                            new FileInfo(DestImgFolderPath + @"\" + fileNameNeededToDownloadWithoutReplacement));
+                            imageFileLvi.SubItems.Add("Успешно");
+                        }
+                        catch (Exception excep)
+                        {
+                            //write exception to log here
+                            imageFileLvi.SubItems.Add("Ошибка");
+                        }
+                    }
+                    //>              
+                }
+                catch(Exception exception)
+                {
+                    MessageBox.Show(exception.Message + "\nПроизошла ошибка подключения к кассе либо выполнения команды." +
+                        "Попробуйте выполнить действие ещё раз. При повторной ошибке обратитесь к системному администратору.",
+                        "Ошибка. Касса №" + cashBoxNumber + " " + cashBoxIpAddress,
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+                    if(client.IsConnected)
+                        client.Disconnect();
+                }
+                
             }
-            
+
+            //We are changing text of "status" field for corresponding cashbox if needed. 
+            //By default it's set to "No actions needed".
+            //If there is any file that need some actions we change cash box text of "status" field to "Actions needed"
+            foreach (ListViewItem lvi in infoAboutCashBoxWithNestedFilesDownloadingResultsListGroup.Items)
+            {
+                foreach (ListViewItem.ListViewSubItem subLvi in lvi.SubItems)
+                {
+                    if (subLvi.Text.Equals("Ошибка"))
+                    {
+                        infoAboutCashBoxWithNestedFilesDownloadingResultsListGroup
+                            .Columns[2].Text = "Есть ошибки";
+                        break;
+                    }
+                }
+            }
+
+            downloadingResultsGroupListControl.Controls
+                .Add(infoAboutCashBoxWithNestedFilesDownloadingResultsListGroup);
+
+            SummaryNotificationForm summaryNotificationFormAfterDownload =
+                new SummaryNotificationForm(downloadingResultsGroupListControl,
+                    new WorkMode() { WorkType = WorkModeType.DownloadFromCashBoxAndShowCorrespondingResults });
+
+            summaryNotificationFormAfterDownload.ShowDialog();
+
+            if (File.Exists(XmlCnfgFilePath))
+                RepositoriesInit();
+
             GroupListViewRedraw();
 
-            if(!this.createNewItemBtn.Enabled)
-                this.createNewItemBtn.Enabled = true;
+            if (!this.createNewItemBtn.Enabled)
+                this.createNewItemBtn.Enabled = true;             
         }
 
         /// <summary>
-        /// Method runs through all XElements in xml config file and collect all image names in one list.
+        /// Method runs through all XElements in xml config file and collect all image file names in one list.
         /// </summary>
         /// <param name="xDocFilePath">Full xml config file path.</param>
         /// <returns>Image file names list type of string.</returns>
@@ -1604,7 +1787,7 @@ namespace PicturesSoft
             }
 
             return listOfAllImageFileNamesFromXmlConfigFile;
-        }
+        }        
 
         private void uploadInfoToCashBoxBtn_Click(object sender, EventArgs e)
         {           
@@ -1614,9 +1797,9 @@ namespace PicturesSoft
         /// <summary>
         /// The method contains 3 blocks. FIRST BLOCK provides checking if image file names 
         /// listed in LOCAL xml config file exist in corresponding folder on LOCAL machine.
-        /// SECOND BLOCK is about using ssh.client to connect to cash box and comparing file
-        /// sizes of xml config files on LOCAL machine and on REMOTE cash box as well as comparing
-        /// image file names on both places and filling corresponding "itemsto- and itemsnotto- UPLOAD" lists.
+        /// SECOND BLOCK is about using ssh.client to connect to cash box and comparing MD5 hash
+        /// sum of xml config file on LOCAL machine and on REMOTE cash box as well as comparing MD5 hash sums of
+        /// image files on both places and filling corresponding "itemsto- and itemsnotto- UPLOAD" lists.
         /// With help of THIRD BLOCK programm perfoms directly UPLOADING template info TO cash box according to
         /// created in second block "itemsto- and itemsnotto- UPLOAD" lists by connecting TO cash box using SCP client.
         /// </summary>
@@ -1695,6 +1878,296 @@ namespace PicturesSoft
 
             #endregion //Checking if image file names listed in LOCAL xml config file exist on LOCAL machine.
 
+            MakeUnixSpecifiedXmlConfigFile();
+
+            //< Getting list of all selected in corresponding checkedlistview cash boxes
+            var listOfCheckedCashBoxes = this.cashesCheckedListBox.CheckedItems;
+
+            if (listOfCheckedCashBoxes.Count == 0)
+            {
+                MessageBox.Show("Не отмечено ни одной кассы! Отметьте хотя бы одно кассу, затем попробуйте ещё раз.",
+                    "Внимание!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            //>
+
+            //< We getting hash sum of LOCAL xml config file before foreach close cause we need to get it once.
+            //Note that we use LOCAL UnixSpecified xml config file, which was made before, in comparison below
+            string xmlConfigFileHashSumOnLocalMachine;
+
+            using (var md5 = MD5.Create())
+            {
+                using (var stream = File.OpenRead(UnixSpecifedXmlCnfgFilePath))
+                {
+                    var hash = md5.ComputeHash(stream);
+                    xmlConfigFileHashSumOnLocalMachine = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+                }
+            }
+            //>
+
+            //We go through all cash boxes getting ip address on fly and then
+            //connecting to cash box first using ssh client to decide which files we
+            //need to upload and are we need to upload them at all, second using scp client
+            //and finally perform uploading.
+            foreach (CashBox cashBox in listOfCheckedCashBoxes)
+            {
+                string cashBoxIpAddress = cashBox.IpAddress;
+                string cashBoxNumber = cashBox.Number;
+                //string cashBoxIpAddress = "192.168.0.224";
+
+                bool isTemplateInfoUploadingToCashBoxNeededToAbort = false;
+                bool isXmlConfigFileNeededToUpload = true;
+
+                #region Comparing MD5 hash sums on REMOTE cash box with the same files on LOCAL machine and filling related lists
+
+                List<string> listOfNewUploadingImageFileNames = new List<string>();
+                List<string> listOfUploadingImageFileNamesNeedToBeReplaced = new List<string>();
+
+                using (SshClient sshClient = new Renci.SshNet.SshClient(cashBoxIpAddress, 22, "tc", "324012"))
+                {
+                    try
+                    {
+                        sshClient.Connect();
+                        
+                        //Getting xml config file size located ON CASH BOX                        
+                        string xmlConfigFileMD5HashSumOnCashBox = sshClient.RunCommand(
+                            "cd /home/tc/storage/crystal-cash/config/plugins; md5sum weightCatalog-xml-config.xml")
+                            .Result.ToString();
+
+                        //If there is no such file on REMOTE server sshClient.RunCommand
+                        //method call will return corresponding message. In this case
+                        //we can skip all corresponding checks as well as skip corresponding 
+                        //foreach iteration and perform UPLOAD.
+                        if (xmlConfigFileMD5HashSumOnCashBox.Contains("No such file"))
+                        {
+                            MessageBox.Show("На кассе нет файлов. Сейчас будет выполнена загрузка файлов на кассу №"
+                                + cashBoxNumber + " " + cashBoxIpAddress,
+                            "Внимание!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            UploadTemplateToEmptyCashBox(cashBoxIpAddress, cashBoxNumber);
+                            continue;
+                        }
+
+                        //Calling method RunCommand will return hash sum and file name 
+                        //seperated with whitespace in one string. So all we need is to get only hash code.
+                        xmlConfigFileMD5HashSumOnCashBox = xmlConfigFileMD5HashSumOnCashBox
+                            .Substring(0, xmlConfigFileMD5HashSumOnCashBox.IndexOf(' '));
+
+                        //Assigning result of comparing xml config file hash sum from REMOTE server
+                        //with the same file hash sum on LOCAL machine to isXmlConfigFileNeededToUpload variable
+                        //to use it later for making decision about xml config file uploading TO CASH BOX
+                        isXmlConfigFileNeededToUpload = !xmlConfigFileMD5HashSumOnCashBox
+                            .Equals(xmlConfigFileHashSumOnLocalMachine);
+
+                        string listOfAllImageFilesFromCashBoxInOneString =
+                           sshClient.RunCommand("cd /home/tc/storage/crystal-cash/images; ls").Result.ToString();
+
+                        string[] arrayListOfAllImageFilesFromCashBox =
+                            listOfAllImageFilesFromCashBoxInOneString.Split(new[] { '\n' },
+                            StringSplitOptions.RemoveEmptyEntries);
+
+                        //< Filling listOfUploadingImageFileNamesNeedToBeReplaced and
+                        //listOfNewUploadingImageFileNames lists with values
+                        foreach (string existingImageFileNameAccordingToXmlCnfgFileOnLocalMachine
+                            in listOfExistingImageFileNamesAccordingToXmlCnfgFileOnLocalMachine)
+                        {
+                            if (arrayListOfAllImageFilesFromCashBox
+                                .Contains<string>(existingImageFileNameAccordingToXmlCnfgFileOnLocalMachine))
+                            {
+                                string imageFileMD5HashSumFromCashBox =
+                                sshClient.RunCommand("cd /home/tc/storage/crystal-cash/images; md5sum "
+                                + existingImageFileNameAccordingToXmlCnfgFileOnLocalMachine).Result.ToString();
+                                imageFileMD5HashSumFromCashBox = imageFileMD5HashSumFromCashBox
+                                    .Substring(0, imageFileMD5HashSumFromCashBox.IndexOf(' '));
+
+                                string imageFileMD5HashSumOnLocalMachine;
+
+                                using (var md5 = MD5.Create())
+                                {
+                                    using (var stream = File.OpenRead(DestImgFolderPath + @"\" +
+                                        existingImageFileNameAccordingToXmlCnfgFileOnLocalMachine))
+                                    {
+                                        var hash = md5.ComputeHash(stream);
+                                        imageFileMD5HashSumOnLocalMachine = BitConverter.ToString(hash)
+                                            .Replace("-", "").ToLowerInvariant();
+                                    }
+                                }
+
+                                if (!imageFileMD5HashSumFromCashBox.Equals(imageFileMD5HashSumOnLocalMachine))
+                                {
+                                    listOfUploadingImageFileNamesNeedToBeReplaced
+                                        .Add(existingImageFileNameAccordingToXmlCnfgFileOnLocalMachine);
+                                }
+                            }
+                            else
+                            {
+                                listOfNewUploadingImageFileNames
+                                    .Add(existingImageFileNameAccordingToXmlCnfgFileOnLocalMachine);
+                            }
+                        }
+                        //>
+                    }
+                    catch (Exception exception)
+                    {                        
+                        MessageBox.Show(exception.Message + "\nПроизошла ошибка подключения к кассе №" +
+                            cashBoxNumber + " " + cashBoxIpAddress + " либо выполнения команды." +
+                        "\nПопробуйте ещё раз загрузить данные. При повторной ошибке обратитесь к системному администратору",
+                        "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                        isTemplateInfoUploadingToCashBoxNeededToAbort = true;
+                    }
+                    finally
+                    {
+                        if (sshClient.IsConnected)
+                            sshClient.Disconnect();
+                    }
+                }
+
+                #endregion //Comparing MD5 hash sums on REMOTE cash box with the same files on LOCAL machine and filling related lists
+
+                //if something went wrong while connecting to cash box above there is no need to continue
+                if (isTemplateInfoUploadingToCashBoxNeededToAbort)
+                    continue;
+
+                #region UPLOADING info TO cash box according to created before "itemsto- and itemsnotto- UPLOAD" lists                
+
+                using (var client = new Renci.SshNet.ScpClient(cashBoxIpAddress, 22, "tc", "324012"))
+                {
+                    try
+                    {
+                        client.Connect();
+
+                        if (isXmlConfigFileNeededToUpload)
+                        {
+                            var result = MessageBox.Show("Подтвердите замену файла конфигурации weightCatalog-xml-config.xml",
+                                "Информация о замене файла конфигурации при загрузке на кассу №" +
+                                cashBoxNumber + " " + cashBoxIpAddress,
+                                MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+
+                            if (result == DialogResult.OK)
+                            {
+                                try
+                                {
+                                    client.Upload(new FileInfo(UnixSpecifedXmlCnfgFilePath),
+                                    "/home/tc/storage/crystal-cash/config/plugins/weightCatalog-xml-config.xml");
+                                }
+                                catch (Exception excep)
+                                {
+                                    //write exception to log here
+                                    //listOfImageFilesThatCauseErrors.Add("weightCatalog-xml-config.xml");
+                                }                                
+                            }
+                        }
+                        else
+                            MessageBox.Show("Файл конфигурации weightCatalog-xml-config.xml не требует замены",
+                                "Информация о замене файла конфигурации при загрузке на кассу №" +
+                                cashBoxNumber + " " + cashBoxIpAddress,
+                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                        StringBuilder infoAboutNewImageFiles = new StringBuilder();
+
+                        if (listOfNewUploadingImageFileNames.Any())
+                        {
+                            infoAboutNewImageFiles.Append("Новые файлы: ");
+                            foreach (string newImageFileName in listOfNewUploadingImageFileNames)
+                            {
+                                infoAboutNewImageFiles.AppendLine(newImageFileName);
+                            }
+
+                            var result = MessageBox.Show(infoAboutNewImageFiles.ToString() +
+                                "\nПодтвердите загрузку новых файлов на кассу №",
+                                "Информация о замене файлов при загрузке на кассу №" +
+                                cashBoxNumber + " " + cashBoxIpAddress,
+                                MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
+
+                            if (result == DialogResult.OK)
+                            {
+                                foreach (string newImageFileName in listOfNewUploadingImageFileNames)
+                                {
+                                    try
+                                    {
+                                        client.Upload(new FileInfo(DestImgFolderPath + @"\" + newImageFileName),
+                                        "/home/tc/storage/crystal-cash/images/" + newImageFileName);
+                                    }
+                                    catch (Exception excep)
+                                    {
+                                        //write exception to log here
+                                        //listOfImageFilesThatCauseErrors.Add("weightCatalog-xml-config.xml");
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show("Нет новых файлов для загрузки на кассу.",
+                                "Информация о новых файлах при загрузке на кассу №" +
+                                cashBoxNumber + " " + cashBoxIpAddress,
+                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+
+                        StringBuilder infoAboutImageFilesNeedToBeReplaced = new StringBuilder();
+
+                        if (listOfUploadingImageFileNamesNeedToBeReplaced.Any())
+                        {
+                            infoAboutImageFilesNeedToBeReplaced.Append("Файлы, которые будут заменены:");
+                            foreach (string imageFileNamesNeedToBeReplaced in listOfUploadingImageFileNamesNeedToBeReplaced)
+                            {
+                                infoAboutImageFilesNeedToBeReplaced.AppendLine(imageFileNamesNeedToBeReplaced);
+                            }
+
+                            var result = MessageBox.Show(infoAboutImageFilesNeedToBeReplaced.ToString() +
+                                "\nПодтвердите замену файлов",
+                                "Информация о загрузке файлов с заменой на кассу №" +
+                                cashBoxNumber + " " + cashBoxIpAddress,
+                                MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
+
+                            if (result == DialogResult.OK)
+                            {
+                                foreach (string imageFileNameToReplace in listOfUploadingImageFileNamesNeedToBeReplaced)
+                                {
+                                    try
+                                    {
+                                        client.Upload(new FileInfo(DestImgFolderPath + @"\" + imageFileNameToReplace),
+                                        "/home/tc/storage/crystal-cash/images/" + imageFileNameToReplace);
+                                    }
+                                    catch
+                                    {
+
+                                    }                                    
+                                }
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show("Нет файлов для загрузки на кассу с заменой.",
+                                "Информация о замене файлов при загрузке на кассу №" +
+                                cashBoxNumber + " " + cashBoxIpAddress,
+                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                    catch (Exception exception)
+                    {
+                        MessageBox.Show(exception.Message + "\nПроизошла ошибка подключения к кассе №" +
+                                cashBoxNumber + " " + cashBoxIpAddress + " либо выполнения команды." +
+                            "\nПопробуйте ещё раз загрузить данные. При повторной ошибке обратитесь к системному администратору",
+                            "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    finally
+                    {
+                        if (client.IsConnected)
+                            client.Disconnect();
+                    }
+                }
+
+                #endregion //UPLOADING info TO cash box according to created "itemsto- and itemsnotto- UPLOAD" lists before
+            }
+        }
+
+        /// <summary>
+        /// Rewriting line ending chars in xml config file
+        /// for work stability on Unix systems.
+        /// </summary>
+        private void MakeUnixSpecifiedXmlConfigFile()
+        {
             //< Rewriting line ending chars in xml config file
             //for work stability on Unix systems before uploading. Also we do it before
             //checking file sizes to suit unix file style.
@@ -1715,243 +2188,23 @@ namespace PicturesSoft
                 doc.WriteTo(writer);
             }
             //>
-
-            //< Getting list of all selected in corresponding checkedlistview cash boxes
-            var listOfCheckedCashBoxes = this.cashesCheckedListBox.CheckedItems;
-
-            if (listOfCheckedCashBoxes.Count == 0)
-            {
-                MessageBox.Show("Не отмечено ни одной кассы! Отметьте хотя бы одно кассу, затем попробуйте ещё раз.",
-                    "Внимание!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            //>
-
-            //We go through all cash boxes getting ip address on fly and then
-            //connecting to cash box firstly using ssh client to decide which files we
-            //need to upload and are we need to upload them at all, secondly using scp client
-            //and finally perform uploading.
-            foreach (CashBox cashBox in listOfCheckedCashBoxes)
-            {
-                string cashBoxIpAddress = cashBox.IpAddress;
-
-                //string cashBoxIpAddress = "192.168.0.224";
-
-                bool isTemplateInfoUploadingToCashBoxNeededToAbort = false;
-                bool isXmlConfigFileNeededToUpload = true;
-
-                #region Comparing file sizes on REMOTE cash box with the same files on LOCAL machine and filling related lists
-
-                List<string> listOfNewUploadingImageFileNames = new List<string>();
-                List<string> listOfUploadingImageFileNamesNeedToBeReplaced = new List<string>();
-
-                using (SshClient sshClient = new Renci.SshNet.SshClient(cashBoxIpAddress, 22, "tc", "324012"))
-                {
-                    try
-                    {
-                        sshClient.Connect();
-                        
-                        //Getting xml config file size located ON CASH BOX                        
-                        string xmlConfigFileSizeOnCashBox = sshClient.RunCommand(
-                            "cd /home/tc/storage/crystal-cash/config/plugins; wc -c < weightCatalog-xml-config.xml")
-                            .Result.ToString();
-                        //String with result of calling sshClient.RunCommand method contains
-                        //"\n" at its end. So we need to remove it or comparing will always return false.
-                        xmlConfigFileSizeOnCashBox = xmlConfigFileSizeOnCashBox.Replace("\n", "");
-
-                        //If there is no such file on REMOTE server sshClient.RunCommand
-                        //method call will return corresponding message. In this case
-                        //we can skip all corresponding checks as well as skip corresponding 
-                        //foreach iteration and perform UPLOAD.
-                        if (xmlConfigFileSizeOnCashBox.Contains("No such file"))
-                        {                            
-                            MessageBox.Show("На кассе нет файлов. Сейчас будет выполнена загрузка файлов на кассу",
-                            "Внимание!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            UploadTemplateToEmptyCashBox(cashBoxIpAddress);
-                            continue;
-                        }                        
-
-                        //Note that we use LOCAL UnixSpecified xml config file which was made before in comparison below
-                        string xmlConfigFileSizeOnLocalMachine = new FileInfo(UnixSpecifedXmlCnfgFilePath).Length.ToString();
-
-                        //Assigning result of comparing xml config file size from REMOTE server
-                        //with the same file on LOCAL machine to isXmlConfigFileNeededToUpload variable
-                        //to use it later for making decision about xml config file uploading TO CASH BOX
-                        isXmlConfigFileNeededToUpload = !xmlConfigFileSizeOnCashBox.Equals(xmlConfigFileSizeOnLocalMachine);
-
-                        string listOfAllImageFilesFromCashBoxInOneString =
-                           sshClient.RunCommand("cd /home/tc/storage/crystal-cash/images; ls").Result.ToString();
-
-                        string[] arrayListOfAllImageFilesFromCashBox =
-                            listOfAllImageFilesFromCashBoxInOneString.Split(new[] { '\n' },
-                            StringSplitOptions.RemoveEmptyEntries);
-
-                        //< filling listOfUploadingImageFileNamesNeedToBeReplaced and
-                        //listOfNewUploadingImageFileNames lists with values
-                        foreach (string existingImageFileNameAccordingToXmlCnfgFileOnLocalMachine
-                            in listOfExistingImageFileNamesAccordingToXmlCnfgFileOnLocalMachine)
-                        {
-                            if (arrayListOfAllImageFilesFromCashBox
-                                .Contains<string>(existingImageFileNameAccordingToXmlCnfgFileOnLocalMachine))
-                            {
-                                string imageFileSizeFromCashBox =
-                                sshClient.RunCommand("cd /home/tc/storage/crystal-cash/images; wc -c < "
-                                + existingImageFileNameAccordingToXmlCnfgFileOnLocalMachine).Result.ToString();
-                                imageFileSizeFromCashBox = imageFileSizeFromCashBox.Replace("\n", "");
-
-                                string imageFileSizeOnLocalMachine = new FileInfo(DestImgFolderPath + @"\" +
-                                    existingImageFileNameAccordingToXmlCnfgFileOnLocalMachine).Length.ToString();
-
-                                if (!imageFileSizeFromCashBox.Equals(imageFileSizeOnLocalMachine))
-                                {
-                                    listOfUploadingImageFileNamesNeedToBeReplaced
-                                        .Add(existingImageFileNameAccordingToXmlCnfgFileOnLocalMachine);
-                                }
-                            }
-                            else
-                            {
-                                listOfNewUploadingImageFileNames
-                                    .Add(existingImageFileNameAccordingToXmlCnfgFileOnLocalMachine);
-                            }
-                        }
-                        //>
-                    }
-                    catch (Exception exception)
-                    {                        
-                        MessageBox.Show(exception.Message + "\nПроизошла ошибка подключения к кассе либо выполнения команды." +
-                        "\nПопробуйте ещё раз загрузить данные. При повторной ошибке обратитесь к системному администратору",
-                        "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                        isTemplateInfoUploadingToCashBoxNeededToAbort = true;
-                    }
-                    finally
-                    {
-                        if (sshClient.IsConnected)
-                            sshClient.Disconnect();
-                    }
-                }
-
-                #endregion //Comparing file sizes on REMOTE cash box with the same files on LOCAL machine and filling related lists
-
-                //if something went wrong while connecting to cash box above there is no need to continue
-                if (isTemplateInfoUploadingToCashBoxNeededToAbort)
-                    continue;
-
-                #region UPLOADING info TO cash box according to created "itemsto- and itemsnotto- UPLOAD" lists before               
-
-                using (var client = new Renci.SshNet.ScpClient(cashBoxIpAddress, 22, "tc", "324012"))
-                {
-                    try
-                    {
-                        client.Connect();
-
-                        if (isXmlConfigFileNeededToUpload)
-                        {
-                            var result = MessageBox.Show("Подтвердите замену файла конфигурации weightCatalog-xml-config.xml",
-                                "Информация о замене файла конфигурации при загрузке на кассу",
-                                MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
-
-                            if (result == DialogResult.OK)
-                            {
-                                client.Upload(new FileInfo(UnixSpecifedXmlCnfgFilePath),
-                            "/home/tc/storage/crystal-cash/config/plugins/weightCatalog-xml-config.xml");
-                            }
-                        }
-                        else
-                            MessageBox.Show("Файл конфигурации weightCatalog-xml-config.xml не требует замены",
-                                "Информация о замене файла конфигурации при загрузке на кассу",
-                                MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                        StringBuilder infoAboutNewImageFiles = new StringBuilder();
-
-                        if (listOfNewUploadingImageFileNames.Any())
-                        {
-                            infoAboutNewImageFiles.Append("Новые файлы: ");
-                            foreach (string newImageFileName in listOfNewUploadingImageFileNames)
-                            {
-                                infoAboutNewImageFiles.AppendLine(newImageFileName);
-                            }
-
-                            var result = MessageBox.Show(infoAboutNewImageFiles.ToString() +
-                                "\nПодтвердите загрузку новых файлов на кассу", "Информация о новых файлах при загрузке на кассу",
-                                MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
-
-                            if (result == DialogResult.OK)
-                            {
-                                foreach (string newImageFileName in listOfNewUploadingImageFileNames)
-                                {
-                                    client.Upload(new FileInfo(DestImgFolderPath + @"\" + newImageFileName),
-                                        "/home/tc/storage/crystal-cash/images/" + newImageFileName);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            MessageBox.Show("Нет новых файлов для загрузки на кассу.", "Информация о новых файлах при загрузке на кассу",
-                                MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        }
-
-                        StringBuilder infoAboutImageFilesNeedToBeReplaced = new StringBuilder();
-
-                        if (listOfUploadingImageFileNamesNeedToBeReplaced.Any())
-                        {
-                            infoAboutImageFilesNeedToBeReplaced.Append("Файлы, которые будут заменены:");
-                            foreach (string imageFileNamesNeedToBeReplaced in listOfUploadingImageFileNamesNeedToBeReplaced)
-                            {
-                                infoAboutImageFilesNeedToBeReplaced.AppendLine(imageFileNamesNeedToBeReplaced);
-                            }
-
-                            var result = MessageBox.Show(infoAboutImageFilesNeedToBeReplaced.ToString() +
-                                "\nПодтвердите замену файлов", "Информация о файлах для загрузки с заменой на кассу",
-                                MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
-
-                            if (result == DialogResult.OK)
-                            {
-                                foreach (string imageFileNameToReplace in listOfUploadingImageFileNamesNeedToBeReplaced)
-                                {
-                                    client.Upload(new FileInfo(DestImgFolderPath + @"\" + imageFileNameToReplace),
-                                        "/home/tc/storage/crystal-cash/images/" + imageFileNameToReplace);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            MessageBox.Show("Нет файлов для загрузки на кассу с заменой.",
-                                "Информация о замене файлов при загрузке на кассу",
-                                MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        }
-                    }
-                    catch (Exception exception)
-                    {
-                        MessageBox.Show(exception.Message + "\nПроизошла ошибка подключения к кассе либо выполнения команды." +
-                            "\nПопробуйте ещё раз загрузить данные. При повторной ошибке обратитесь к системному администратору",
-                            "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                    finally
-                    {
-                        if (client.IsConnected)
-                            client.Disconnect();
-                    }
-                }
-
-                #endregion //UPLOADING info TO cash box according to created "itemsto- and itemsnotto- UPLOAD" lists before
-            }
         }
 
-        private void UploadTemplateToEmptyCashBox(string cashBoxIpAddress)
+        private void UploadTemplateToEmptyCashBox(string cashBoxIpAddress, string cashBoxNumber)
         {           
             using (var client = new Renci.SshNet.ScpClient(cashBoxIpAddress, 22, "tc", "324012"))
             {
                 try
                 {
                     client.Connect();
-                    client.Upload(new FileInfo(XmlCnfgFilePath),
+                    client.Upload(new FileInfo(UnixSpecifedXmlCnfgFilePath),
                        "/home/tc/storage/crystal-cash/config/plugins/weightCatalog-xml-config.xml");
                     client.Upload(new DirectoryInfo(DestImgFolderPath), "/home/tc/storage/crystal-cash/images");
                 }
                 catch (Exception exception)
                 {
-                    MessageBox.Show(exception.Message + "\nПроизошла ошибка подключения к кассе либо выполнения команды." +
+                    MessageBox.Show(exception.Message + "\nПроизошла ошибка подключения к кассе №"
+                        + cashBoxNumber + " " + cashBoxIpAddress + " либо выполнения команды." +
                         "\nПопробуйте ещё раз загрузить данные. При повторной ошибке обратитесь к системному администратору",
                         "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
@@ -1962,30 +2215,37 @@ namespace PicturesSoft
                 }                
             }
         }
-        /*
-        private void PopulateTreeView(List<Shop> shops)
+
+        private void testButton_Click(object sender, EventArgs e)
         {
-            this.cashBoxesTreeView.Nodes.Clear();
-            this.cashBoxesTreeView.BeginUpdate();
+            /*
+            string resultHashFromLocalMachine;
 
-            int counter = 0;
-
-            foreach(Shop shop in shops)
+            using (var md5 = MD5.Create())
             {
-                this.cashBoxesTreeView.Nodes.Add("Shop " + shop.Code);
-
-                foreach(CashBox cashBox in shop.CashBoxes)
+                using (var stream = File.OpenRead(UnixSpecifedXmlCnfgFilePath))
                 {
-                    this.cashBoxesTreeView.Nodes[counter].Nodes
-                        .Add("CashBox " + cashBox.Number + ' ' + cashBox.IpAddress);
+                    var hash = md5.ComputeHash(stream);
+                    resultHashFromLocalMachine = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
                 }
-
-                counter++;
             }
+            
+            string cashBoxIpAddress = "192.168.3.157";
+            using (SshClient sshClient = new Renci.SshNet.SshClient(cashBoxIpAddress, 22, "tc", "324012"))
+            {
+                sshClient.Connect();
+               // var install = sshClient.RunCommand("sudo apt-get install libarchive-zip-perl").Result.ToString();
+                var result = sshClient
+                    .RunCommand("cd /home/tc/storage/crystal-cash/config/plugins; md5sum weightCatalog-xml-config.xml")
+                    .Result.ToString();
+                result = result.Substring(0, result.IndexOf(' '));
+                MessageBox.Show("Unix: " + result + "\nWindows:" + resultHashFromLocalMachine);
+                sshClient.Disconnect();
+            }   
+            */
 
-            this.cashBoxesTreeView.EndUpdate();
-            this.cashBoxesTreeView.Refresh();
+            //SummaryNotificationForm summaryNotificationForm = new SummaryNotificationForm(ListOfShopsWithCashBoxes);
+            //summaryNotificationForm.ShowDialog();
         }
-        */
     }
 }
