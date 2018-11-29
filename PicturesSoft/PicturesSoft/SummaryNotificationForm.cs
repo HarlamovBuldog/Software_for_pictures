@@ -5,31 +5,48 @@ namespace PicturesSoft
 {
     public partial class SummaryNotificationForm : Form
     {
-        public SummaryNotificationForm(GroupListControl groupListControl, WorkMode workMode)
+        public SummaryNotificationForm(GroupListControl groupListControl, WorkMode workMode,
+            bool noActionsNeeded = false)
         {
             InitializeComponent();
 
             switch(workMode.WorkType)
             {
                 case WorkModeType.DownloadFromCashBoxAndShowNotificationTable:
-                    this.Text = "Подтверждение загрузки информации с кассы";
-                    this.descriptionTextBox.Text = "Подтвердите загрузку информации, указанной выше";
+                    this.Text = "Загрузка информации с кассы";                    
+                    if(noActionsNeeded == false)
+                    {
+                        this.descriptionTextBox.Text = "Подтвердите загрузку информации, указанной выше";
+                    }
+                    else
+                    {
+                        this.descriptionTextBox.Text = "Согласно полученным данным никаких действий проводить не требуется.";
+                        this.cancelButton.Visible = false;
+                    }
                     break;
                 case WorkModeType.DownloadFromCashBoxAndShowCorrespondingResults:
                     this.Text = "Результаты загрузки информации с кассы";
-                    this.descriptionTextBox.Text = "Выше показаны результаты загрузки информации с кассы." +
-                        "Если возникли ошибки, то просмотрите логи для более детального разбора" +
+                    this.descriptionTextBox.Text = "Выше показаны результаты загрузки информации с кассы.\n" +
+                        "Если возникли ошибки, то просмотрите логи для более детального разбора\n" +
                         " либо свяжитесь с системным администратором.";
                     this.cancelButton.Visible = false;
                     break;                
                 case WorkModeType.UploadToCashBoxAndShowNotificationTable:
-                    this.Text = "Подтверждение загрузки информации на кассу";
-                    this.descriptionTextBox.Text = "Подтвердите загрузку информации, указанной выше";
+                    this.Text = "Отправка информации на кассу";
+                    if (noActionsNeeded == false)
+                    {
+                        this.descriptionTextBox.Text = "Подтвердите загрузку информации, указанной выше";
+                    }
+                    else
+                    {
+                        this.descriptionTextBox.Text = "Согласно полученным данным никаких действий проводить не требуется.";
+                        this.cancelButton.Visible = false;
+                    }                    
                     break;
                 case WorkModeType.UploadToCashBoxAndShowCorrespondingResults:
-                    this.Text = "Результаты загрузки информации на кассу";
-                    this.descriptionTextBox.Text = "Выше показаны результаты загрузки информации на кассы." +
-                        "Если возникли ошибки, то просмотрите логи для более детального разбора" +
+                    this.Text = "Результаты отправки информации на кассу";
+                    this.descriptionTextBox.Text = "Выше показаны результаты загрузки информации на кассы.\n" +
+                        "Если возникли ошибки, то просмотрите логи для более детального разбора\n" +
                         " либо свяжитесь с системным администратором.";
                     this.cancelButton.Visible = false;
                     break;

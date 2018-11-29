@@ -24,9 +24,7 @@ namespace PicturesSoft
             InvokeThread = new Thread(new ThreadStart(InvokeMethod));
             InvokeThread.SetApartmentState(ApartmentState.STA);
             InvokeResult = DialogResult.None;
-        }
-        
-
+        }      
 
         public DialogResult Invoke()
         {

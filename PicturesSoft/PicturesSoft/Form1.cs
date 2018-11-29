@@ -62,6 +62,7 @@ namespace PicturesSoft
             //Dialog for setting pathes
             AppSettings appSettingsDialog = new AppSettings();
             var result = appSettingsDialog.ShowDialog(this);
+            appSettingsDialog.Dispose();
 
             if (result == DialogResult.Cancel)
                 this.Close();
@@ -476,14 +477,16 @@ namespace PicturesSoft
 
         private void ConnectToServerAndDownloadTopologyStructureFile()
         {
-            var ConnToServAndUpFile = new ServerConnectionInfoForm();
+            ServerConnectionInfoForm ConnToServAndUpFile = new ServerConnectionInfoForm();
             ConnToServAndUpFile.ShowDialog(this);
+            ConnToServAndUpFile.Dispose();
         }
 
         private void ConnectToDbAndMakeLocalCatalog()
         {
-            var ConnectToDbAndMakeLocalCatalog = new DBConnSettingsForm();
+            DBConnSettingsForm ConnectToDbAndMakeLocalCatalog = new DBConnSettingsForm();
             ConnectToDbAndMakeLocalCatalog.ShowDialog(this);
+            ConnectToDbAndMakeLocalCatalog.Dispose();
         }
 
         private void GroupListViewRedraw()
@@ -907,6 +910,7 @@ namespace PicturesSoft
             CreateAndEditChildForm CrAnEdChildForm =
                 new CreateAndEditChildForm(workMode, childToEdit, DestImgFolderPath);
             CrAnEdChildForm.ShowDialog(this);
+            CrAnEdChildForm.Dispose();
 
             this.editSelectedBtn.Enabled = false;
             this.deleteSelectedBtn.Enabled = false;
@@ -955,12 +959,14 @@ namespace PicturesSoft
                     CreateAndEditGroupForm CrAnEdGrForm =
                        new CreateAndEditGroupForm(workMode, DestImgFolderPath);
                     CrAnEdGrForm.ShowDialog(this);
+                    CrAnEdGrForm.Dispose();
                 }
                 else
                 {
                     CreateAndEditGroupForm CrAnEdGrForm =
                        new CreateAndEditGroupForm(workMode, DestImgFolderPath, true);
                     CrAnEdGrForm.ShowDialog(this);
+                    CrAnEdGrForm.Dispose();
                 }
             }
             else if (this.childsListView.Visible)
@@ -970,12 +976,14 @@ namespace PicturesSoft
                     CreateAndEditChildForm CrAnEdChildForm =
                         new CreateAndEditChildForm(workMode, groupOwner, DestImgFolderPath);
                     CrAnEdChildForm.ShowDialog(this);
+                    CrAnEdChildForm.Dispose();
                 }
                 else
                 {
                     CreateAndEditChildForm CrAnEdChildForm =
                         new CreateAndEditChildForm(workMode, groupOwner, DestImgFolderPath, true);
                     CrAnEdChildForm.ShowDialog(this);
+                    CrAnEdChildForm.Dispose();
                 }                    
             }
 
@@ -1000,6 +1008,7 @@ namespace PicturesSoft
                 CreateAndEditGroupForm CrAnEdGrForm = 
                     new CreateAndEditGroupForm(workMode, groupToEdit, DestImgFolderPath);
                 CrAnEdGrForm.ShowDialog(this);
+                CrAnEdGrForm.Dispose();
             }
             else if(globalSlctedItemType.Name.Equals("Child"))
             {
@@ -1015,6 +1024,7 @@ namespace PicturesSoft
                 CreateAndEditChildForm CrAnEdChildForm =
                     new CreateAndEditChildForm(workMode, childToEdit, DestImgFolderPath);
                 CrAnEdChildForm.ShowDialog(this);
+                CrAnEdChildForm.Dispose();
             }
 
             this.editSelectedBtn.Enabled = false;
@@ -1576,6 +1586,8 @@ namespace PicturesSoft
             if (isFuncNeededToAbort)
                 return;
 
+            bool noActionsNeeded = true;
+
             //We are changing text of "status" field for corresponding cashbox if needed. 
             //By default it's set to "No actions needed".
             //If there is any file that need some actions we change cash box text of "status" field to "Actions needed"
@@ -1587,6 +1599,7 @@ namespace PicturesSoft
                     {
                         infoAboutCashBoxWithNestedFilesNotificationInfoBeforeDownloadListGroup
                             .Columns[2].Text = "Требуются действия";
+                        noActionsNeeded = false;
                         break;
                     }
                 }
@@ -1597,11 +1610,14 @@ namespace PicturesSoft
 
             SummaryNotificationForm summaryNotificationFormBeforeDownload = 
                 new SummaryNotificationForm(notificationBeforeDownloadGroupListControl,
-                    new WorkMode() { WorkType = WorkModeType.DownloadFromCashBoxAndShowNotificationTable});
+                    new WorkMode() { WorkType = WorkModeType.DownloadFromCashBoxAndShowNotificationTable},
+                    noActionsNeeded);
 
             DialogResult userDecision = summaryNotificationFormBeforeDownload.ShowDialog();
+            summaryNotificationFormBeforeDownload.Dispose();
 
-            if (userDecision == DialogResult.Cancel || userDecision == DialogResult.No || userDecision == DialogResult.Abort)
+            if (noActionsNeeded == true || userDecision == DialogResult.Cancel 
+                || userDecision == DialogResult.No || userDecision == DialogResult.Abort)
                 return;
 
             ILookup<bool, string> lookupOfAllImageFileNamesNeededToDownloadGrouppedByReplacementIdentif = 
@@ -1751,6 +1767,7 @@ namespace PicturesSoft
                     new WorkMode() { WorkType = WorkModeType.DownloadFromCashBoxAndShowCorrespondingResults });
 
             summaryNotificationFormAfterDownload.ShowDialog();
+            summaryNotificationFormAfterDownload.Dispose();
 
             if (File.Exists(XmlCnfgFilePath))
                 RepositoriesInit();
@@ -1938,6 +1955,8 @@ namespace PicturesSoft
             bool isXmlConfigFileNeededToUpload = true;
             bool isXmlConfigFileStoredOnCashBox = true;
 
+            bool noActionsNeededForAllCashBoxes = true;
+
             //bool = true if file is needed to be replaced.
             List<KeyValuePair<bool, string>> listOfAllImageFileNamesNeededToUploadWithReplacementIdentif =
                 new List<KeyValuePair<bool, string>>();
@@ -2120,6 +2139,7 @@ namespace PicturesSoft
                         {
                             infoAboutCashBoxWithNestedFilesNotificationInfoBeforeUploadListGroup
                                 .Columns[2].Text = "Требуются действия";
+                            noActionsNeededForAllCashBoxes = false;
                             break;
                         }
                     }
@@ -2131,11 +2151,13 @@ namespace PicturesSoft
 
             SummaryNotificationForm summaryNotificationFormBeforeUpload =
                 new SummaryNotificationForm(notificationBeforeUploadGroupListControl,
-                    new WorkMode() { WorkType = WorkModeType.UploadToCashBoxAndShowNotificationTable });
+                    new WorkMode() { WorkType = WorkModeType.UploadToCashBoxAndShowNotificationTable },
+                    noActionsNeededForAllCashBoxes);
 
             DialogResult userDecision = summaryNotificationFormBeforeUpload.ShowDialog();
+            summaryNotificationFormBeforeUpload.Dispose();
 
-            if (userDecision == DialogResult.Cancel || userDecision == DialogResult.No || userDecision == DialogResult.Abort)
+            if (noActionsNeededForAllCashBoxes || userDecision == DialogResult.Cancel || userDecision == DialogResult.No || userDecision == DialogResult.Abort)
                 return;
 
             foreach (CashBox cashBox in listOfCheckedCashBoxes)
@@ -2282,7 +2304,8 @@ namespace PicturesSoft
                     new SummaryNotificationForm(uploadingResultsGroupListControl,
                         new WorkMode() { WorkType = WorkModeType.UploadToCashBoxAndShowCorrespondingResults });
 
-            summaryNotificationFormAfterDownload.ShowDialog();            
+            summaryNotificationFormAfterDownload.ShowDialog();
+            summaryNotificationFormAfterDownload.Dispose();
         }
 
         /// <summary>
