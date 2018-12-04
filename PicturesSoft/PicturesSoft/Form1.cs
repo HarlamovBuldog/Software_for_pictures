@@ -3,6 +3,7 @@ using Renci.SshNet;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.OleDb;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -536,8 +537,11 @@ namespace PicturesSoft
             this.Refresh();
             this.Invalidate();
             this.groupsListView.Refresh();
-            this.groupsListView.Invalidate();
-            
+            this.groupsListView.Invalidate();         
+        }
+
+        private void RestoreGroupListViewItemHighLightedState()
+        {
             if (groupsListView.Items.Count > 0 && globalSelectedItem != null
                 && globalSelectedItem.GetType().Name.Equals("Group"))
             {
@@ -722,9 +726,12 @@ namespace PicturesSoft
                 control.BackColor = Color.LightGray;
             }
 
-            this.navBtwPagesTableLayout
+            if(this.navBtwPagesTableLayout.Controls.Count > 0)
+            {
+                this.navBtwPagesTableLayout
                 .Controls[GlobalListViewRelatedPageNumber - 1]
                 .BackColor = Color.Yellow;
+            }            
         }
 
         private void DeleteAllChildsBelongToGroup()
@@ -1064,7 +1071,7 @@ namespace PicturesSoft
 
             this.editSelectedBtn.Enabled = false;
             this.deleteSelectedBtn.Enabled = false;
-
+            this.moveObjectsBtnPanel.Enabled = false;
         }
 
         #endregion //CRUD buttons Events
@@ -1143,6 +1150,7 @@ namespace PicturesSoft
 
                 this.GroupRep.SwapGroups(firstGroupIndexToSwap, secondGroupIndexToSwap);
                 this.GroupListViewRedraw();
+                RestoreGroupListViewItemHighLightedState();
                 this.groupsListView.Focus();
             }
             else if (globalSlctedItemType.Name.Equals("Child"))
@@ -1172,6 +1180,7 @@ namespace PicturesSoft
 
                 this.GroupRep.SwapGroups(firstGroupIndexToSwap, secondGroupIndexToSwap);
                 this.GroupListViewRedraw();
+                RestoreGroupListViewItemHighLightedState();
                 this.groupsListView.Focus();
             }
             else if (globalSlctedItemType.Name.Equals("Child"))
@@ -1201,6 +1210,7 @@ namespace PicturesSoft
 
                 this.GroupRep.SwapGroups(firstGroupIndexToSwap, secondGroupIndexToSwap);
                 this.GroupListViewRedraw();
+                RestoreGroupListViewItemHighLightedState();
                 this.groupsListView.Focus();
             }
             else if (globalSlctedItemType.Name.Equals("Child"))
@@ -1237,6 +1247,7 @@ namespace PicturesSoft
 
                 this.GroupRep.SwapGroups(firstGroupIndexToSwap, secondGroupIndexToSwap);
                 this.GroupListViewRedraw();
+                RestoreGroupListViewItemHighLightedState();
                 this.groupsListView.Focus();
             }
             else if (globalSlctedItemType.Name.Equals("Child"))
@@ -1580,7 +1591,7 @@ namespace PicturesSoft
                 {
                     if(sshClient.IsConnected)
                         sshClient.Disconnect();
-                }                
+                }
             }
 
             if (isFuncNeededToAbort)
@@ -2338,34 +2349,45 @@ namespace PicturesSoft
 
         private void testButton_Click(object sender, EventArgs e)
         {
-            /*
-            string resultHashFromLocalMachine;
+            var fileName = @"D:\Work\Проба.xlsx";
+            var connectionString = string.Format("Provider=Microsoft.Jet.OLEDB.4.0; data source={0}; Extended Properties=Excel 8.0;", fileName);
 
-            using (var md5 = MD5.Create())
+            //List<Child> children = new List<Child>();
+            //List<Group> groups = new List<Group>();
+
+            using (OleDbConnection connection = new OleDbConnection(connectionString))
             {
-                using (var stream = File.OpenRead(UnixSpecifedXmlCnfgFilePath))
+                connection.Open();              
+
+                OleDbCommand command2 = new OleDbCommand("select * from [List2$]", connection);
+                using (OleDbDataReader dr = command2.ExecuteReader())
                 {
-                    var hash = md5.ComputeHash(stream);
-                    resultHashFromLocalMachine = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+                    while (dr.Read())
+                    {
+                        GroupRep.AddGroup(Group.CreateGroup(
+                            int.Parse(dr[1].ToString()),
+                            dr[0].ToString(),
+                            string.Empty
+                            ));
+                    }
+                }
+
+                OleDbCommand command1 = new OleDbCommand("select * from [List1$]", connection);
+                using (OleDbDataReader dr = command1.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        ChildRep.AddChild(Child.CreateChild(
+                            int.Parse(dr[0].ToString()),
+                            dr[1].ToString() + dr[2].ToString(),
+                            dr[1].ToString() + dr[2].ToString(),
+                            int.Parse(dr[3].ToString()),
+                            string.Empty
+                            ));
+                    }
                 }
             }
             
-            string cashBoxIpAddress = "192.168.3.157";
-            using (SshClient sshClient = new Renci.SshNet.SshClient(cashBoxIpAddress, 22, "tc", "324012"))
-            {
-                sshClient.Connect();
-               // var install = sshClient.RunCommand("sudo apt-get install libarchive-zip-perl").Result.ToString();
-                var result = sshClient
-                    .RunCommand("cd /home/tc/storage/crystal-cash/config/plugins; md5sum weightCatalog-xml-config.xml")
-                    .Result.ToString();
-                result = result.Substring(0, result.IndexOf(' '));
-                MessageBox.Show("Unix: " + result + "\nWindows:" + resultHashFromLocalMachine);
-                sshClient.Disconnect();
-            }   
-            */
-
-            //SummaryNotificationForm summaryNotificationForm = new SummaryNotificationForm(ListOfShopsWithCashBoxes);
-            //summaryNotificationForm.ShowDialog();
         }
     }
 }
