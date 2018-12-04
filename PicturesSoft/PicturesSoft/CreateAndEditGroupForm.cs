@@ -25,16 +25,16 @@ namespace PicturesSoft
         {
             this.WorkMode = workMode;
             this.GroupToEditOrCreate = Group.CreateNewGroup();
-            PredeterminedDestImgFolderPath = DestImgFolderPath;
-
-            if (isThisTheFirstElementInSequence)
-                this.addAfterSelectedRadioBtn.Enabled = false;
+            PredeterminedDestImgFolderPath = DestImgFolderPath;            
 
             if (WorkMode.WorkType.Equals(WorkModeType.Create))
             {
                 this.Text = "Create new Group";
                 InitializeComponent();
             }
+
+            if (isThisTheFirstElementInSequence)
+                this.addAfterSelectedRadioBtn.Enabled = false;
         }
 
         public CreateAndEditGroupForm(WorkMode workMode, Group group, string DestImgFolderPath)
@@ -76,30 +76,31 @@ namespace PicturesSoft
 
             do
             {
-                DialogInvoker dialogInvoker = new DialogInvoker(openFileDialogFilter);
-
-                if (dialogInvoker.Invoke() == DialogResult.OK)
+                using (DialogInvoker dialogInvoker = new DialogInvoker(openFileDialogFilter))
                 {
-                    FileInfo fileInfo = new FileInfo(dialogInvoker.InvokeDialog.FileName);
-                    long fileSize = fileInfo.Length;
-
-                    if (fileSize < 1024000)
+                    if (dialogInvoker.Invoke() == DialogResult.OK)
                     {
-                        //System folder path of selected item (full source file name)
-                        SourceFullFileName = dialogInvoker.InvokeDialog.FileName;
-                        this.groupImgPathTextBox.Text =
-                            SourceFullFileName.Substring(SourceFullFileName.LastIndexOf("\\") + 1);
-                        break;
+                        FileInfo fileInfo = new FileInfo(dialogInvoker.InvokeDialog.FileName);
+                        long fileSize = fileInfo.Length;
+
+                        if (fileSize < 1024000)
+                        {
+                            //System folder path of selected item (full source file name)
+                            SourceFullFileName = dialogInvoker.InvokeDialog.FileName;
+                            this.groupImgPathTextBox.Text =
+                                SourceFullFileName.Substring(SourceFullFileName.LastIndexOf("\\") + 1);
+                            break;
+                        }
+                        else
+                        {
+                            MessageBox.Show("Размер изображения больше 1 мб. Выберите другой файл или измените " +
+                                "текущий файл, чтобы он соответствовал требованиям", "Внимание",
+                                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
                     }
                     else
-                    {
-                        MessageBox.Show("Размер изображения больше 1 мб. Выберите другой файл или измените " +
-                            "текущий файл, чтобы он соответствовал требованиям", "Внимание",
-                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    }
-                }
-                else
-                    break;
+                        break;
+                }                    
             }
             while (true);
             
@@ -112,8 +113,60 @@ namespace PicturesSoft
 
         private void CreateAndEditGrSaveBtn_Click(object sender, EventArgs e)
         {
-            if (ValidateForm() == false)
+            bool isValidGroupId = ValidateGroupId();
+            bool isValidGroupName = ValidateGroupName();
+            bool isValidGroupImgPath = ValidateGroupImgPath();
+
+            bool isImgNeeded = true;
+            
+            if(isValidGroupId && isValidGroupName && !isValidGroupImgPath)
+            {
+                DialogResult dialogResult = MessageBox.Show("Вы уверены, что хотите сохранить группу без картинки?",
+                    "Внимание", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+                if (dialogResult == DialogResult.No || dialogResult == DialogResult.None)
+                {
+                    return;
+                }      
+                else
+                {
+                    isImgNeeded = false;
+                }
+            }
+            else if(!isValidGroupId || !isValidGroupName || !isValidGroupImgPath)
+            {
                 return;
+            }
+
+            //< getting values from textboxes
+            GroupToEditOrCreate.Id = Int32.Parse(this.groupIdTextBox.Text);
+            GroupToEditOrCreate.Name = this.groupNameTextBox.Text;
+            GroupToEditOrCreate.ImgName = this.groupImgPathTextBox.Text;
+            //>
+
+            if (WorkMode.WorkType.Equals(WorkModeType.Create))
+            {
+                if (this.Owner != null)
+                {
+                    if (this.addToTheEndRadioBtn.Checked)
+                        ((Form1)this.Owner).AddNewGroup(GroupToEditOrCreate);
+                    else
+                        ((Form1)this.Owner).AddNewGroup(GroupToEditOrCreate, false);
+                }
+            }
+            else if (WorkMode.WorkType.Equals(WorkModeType.Edit))
+            {
+                if (this.Owner != null)
+                {
+                    ((Form1)this.Owner).UpdateGroup(GroupToEditOrCreate);
+                }
+            }
+
+            if(!isImgNeeded)
+            {
+                this.Close();
+                return;
+            }
 
             //System folder path of selected item (full source file name)
             //string sourceFileName = this.groupImgPathTextBox.Text;
@@ -173,31 +226,7 @@ namespace PicturesSoft
                     this.groupIdTextBox.Text +
                     imgExtension;
                 File.Copy(SourceFullFileName, destFolderName, true);
-            }
-
-            //< getting values from textboxes
-            GroupToEditOrCreate.Id = Int32.Parse(this.groupIdTextBox.Text);
-            GroupToEditOrCreate.Name = this.groupNameTextBox.Text;
-            GroupToEditOrCreate.ImgName = fileName;
-            //>
-
-            if (WorkMode.WorkType.Equals(WorkModeType.Create))
-            {
-                if(this.Owner != null)
-                {
-                    if(this.addToTheEndRadioBtn.Checked)
-                        ((Form1)this.Owner).AddNewGroup(GroupToEditOrCreate);
-                    else
-                        ((Form1)this.Owner).AddNewGroup(GroupToEditOrCreate, false);
-                }
-            }
-            else if(WorkMode.WorkType.Equals(WorkModeType.Edit))
-            {
-                if (this.Owner != null)
-                {
-                    ((Form1)this.Owner).UpdateGroup(GroupToEditOrCreate);
-                }
-            }
+            }            
 
             //remaking final xml file
             //((Form1)this.Owner).CreateFinalXmlFile();
@@ -309,21 +338,6 @@ namespace PicturesSoft
             }
             else
                 errorProvider1.SetError(this.groupImgPathTextBox, "");
-
-            return isValid;
-        }
-
-        private bool ValidateForm()
-        {
-            bool isValid = false;
-
-            bool isValidGroupId = ValidateGroupId();
-            bool isValidGroupName = ValidateGroupName();
-            bool isValidGroupImgPath = ValidateGroupImgPath();
-
-            if (isValidGroupId && isValidGroupName
-                && isValidGroupImgPath)
-                isValid = true;
 
             return isValid;
         }

@@ -29,10 +29,7 @@ namespace PicturesSoft
             this.WorkMode = workMode;
             this.ChildToEditOrCreate = Child.CreateNewChild();
             GroupOwner = groupOwner;
-            PredeterminedDestImgFolderPath = DestImgFolderPath;
-
-            if (isThisTheFirstElementInSequence)
-                this.addAfterSelectedRadioBtn.Enabled = false;
+            PredeterminedDestImgFolderPath = DestImgFolderPath;           
 
             if (WorkMode.WorkType.Equals(WorkModeType.Create))
             {
@@ -40,6 +37,9 @@ namespace PicturesSoft
                 InitializeComponent();
                 this.childGroupCodeTextBox.Text = groupOwner.Id.ToString();
             }
+
+            if (isThisTheFirstElementInSequence)
+                this.addAfterSelectedRadioBtn.Enabled = false;
         }
 
         public CreateAndEditChildForm(WorkMode workMode, Child child, string DestImgFolderPath)
@@ -77,30 +77,31 @@ namespace PicturesSoft
 
             do
             {
-                DialogInvoker dialogInvoker = new DialogInvoker(openFileDialogFilter);
-
-                if (dialogInvoker.Invoke() == DialogResult.OK)
+                using (DialogInvoker dialogInvoker = new DialogInvoker(openFileDialogFilter))
                 {
-                    FileInfo fileInfo = new FileInfo(dialogInvoker.InvokeDialog.FileName);
-                    long fileSize = fileInfo.Length;
-
-                    if (fileSize < 1024000)
+                    if (dialogInvoker.Invoke() == DialogResult.OK)
                     {
-                        //System folder path of selected item (full source file name)
-                        SourceFullFileName = dialogInvoker.InvokeDialog.FileName;
-                        this.childImgPathTextBox.Text =
-                            SourceFullFileName.Substring(SourceFullFileName.LastIndexOf("\\") + 1);
-                        break;
+                        FileInfo fileInfo = new FileInfo(dialogInvoker.InvokeDialog.FileName);
+                        long fileSize = fileInfo.Length;
+
+                        if (fileSize < 1024000)
+                        {
+                            //System folder path of selected item (full source file name)
+                            SourceFullFileName = dialogInvoker.InvokeDialog.FileName;
+                            this.childImgPathTextBox.Text =
+                                SourceFullFileName.Substring(SourceFullFileName.LastIndexOf("\\") + 1);
+                            break;
+                        }
+                        else
+                        {
+                            MessageBox.Show("Размер изображения больше 1 мб. Выберите другой файл или измените " +
+                                "текущий файл, чтобы он соответствовал требованиям", "Внимание",
+                                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
                     }
                     else
-                    {
-                        MessageBox.Show("Размер изображения больше 1 мб. Выберите другой файл или измените " +
-                            "текущий файл, чтобы он соответствовал требованиям", "Внимание",
-                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    }
-                }
-                else
-                    break;
+                        break;
+                }                    
             }
             while (true);
         }
@@ -112,8 +113,63 @@ namespace PicturesSoft
 
         private void CreateAndEditChildSaveBtn_Click(object sender, EventArgs e)
         {
-            if (ValidateForm() == false)
+            bool isValidChildCode = ValidateChildCode();
+            bool isValidChildName = ValidateChildName();
+            bool isValidChildSimpleName = ValidateChildSimpleName();
+            bool isValidChildImgPath = ValidateChildImgPath();
+
+            bool isImgNeeded = true;
+
+            if (isValidChildCode && isValidChildName && isValidChildSimpleName && !isValidChildImgPath)
+            {
+                DialogResult dialogResult = MessageBox.Show("Вы уверены, что хотите сохранить позицию без картинки?",
+                    "Внимание", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+                if (dialogResult == DialogResult.No || dialogResult == DialogResult.None)
+                {
+                    return;
+                }
+                else
+                {
+                    isImgNeeded = false;
+                }
+            }
+            else if (!isValidChildCode || !isValidChildName || isValidChildSimpleName || !isValidChildImgPath)
+            {
                 return;
+            }
+
+            //< getting values from textboxes
+            ChildToEditOrCreate.Code = Int32.Parse(this.childCodeTextBox.Text);
+            ChildToEditOrCreate.Name = this.childNameTextBox.Text;
+            ChildToEditOrCreate.SimpleName = this.childSimpleNameTextBox.Text;
+            ChildToEditOrCreate.GroupCode = Int32.Parse(this.childGroupCodeTextBox.Text);
+            ChildToEditOrCreate.ImgName = this.childImgPathTextBox.Text;
+            //>
+
+            if (WorkMode.WorkType.Equals(WorkModeType.Create))
+            {
+                if (this.Owner != null)
+                {
+                    if (this.addToTheEndRadioBtn.Checked)
+                        ((Form1)this.Owner).AddNewChild(ChildToEditOrCreate);
+                    else
+                        ((Form1)this.Owner).AddNewChild(ChildToEditOrCreate, false);
+                }
+            }
+            else if (WorkMode.WorkType.Equals(WorkModeType.Edit))
+            {
+                if (this.Owner != null)
+                {
+                    ((Form1)this.Owner).UpdateChild(ChildToEditOrCreate);
+                }
+            }
+
+            if (!isImgNeeded)
+            {
+                this.Close();
+                return;
+            }
 
             //Get image extension
             string imgExtension = SourceFullFileName.Substring(SourceFullFileName.LastIndexOf('.'));
@@ -181,33 +237,7 @@ namespace PicturesSoft
                     this.childCodeTextBox.Text +
                     imgExtension;
                 File.Copy(SourceFullFileName, destFolderName, true);
-            }
-
-            //< getting values from textboxes
-            ChildToEditOrCreate.Code = Int32.Parse(this.childCodeTextBox.Text);
-            ChildToEditOrCreate.Name = this.childNameTextBox.Text;
-            ChildToEditOrCreate.SimpleName = this.childSimpleNameTextBox.Text;
-            ChildToEditOrCreate.GroupCode = Int32.Parse(this.childGroupCodeTextBox.Text);
-            ChildToEditOrCreate.ImgName = fileName;
-            //>
-
-            if (WorkMode.WorkType.Equals(WorkModeType.Create))
-            {
-                if (this.Owner != null)
-                {
-                    if (this.addToTheEndRadioBtn.Checked)
-                        ((Form1)this.Owner).AddNewChild(ChildToEditOrCreate);
-                    else
-                        ((Form1)this.Owner).AddNewChild(ChildToEditOrCreate, false);
-                }
-            }
-            else if (WorkMode.WorkType.Equals(WorkModeType.Edit))
-            {
-                if (this.Owner != null)
-                {
-                    ((Form1)this.Owner).UpdateChild(ChildToEditOrCreate);
-                }
-            }
+            }                       
 
             //remaking final xml file
             //((Form1)this.Owner).CreateFinalXmlFile();
@@ -345,22 +375,6 @@ namespace PicturesSoft
             }
             else
                 errorProvider1.SetError(this.childImgPathTextBox, "");
-
-            return isValid;
-        }
-
-        private bool ValidateForm()
-        {
-            bool isValid = false;
-
-            bool isValidChildCode = ValidateChildCode();
-            bool isValidChildName = ValidateChildName();
-            bool isValidChildSimpleName = ValidateChildSimpleName();
-            bool isValidChildImgPath = ValidateChildImgPath();
-
-            if (isValidChildCode && isValidChildName && 
-                isValidChildSimpleName && isValidChildImgPath)
-                isValid = true;
 
             return isValid;
         }
