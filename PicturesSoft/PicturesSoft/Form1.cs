@@ -59,6 +59,7 @@ namespace PicturesSoft
         {
             InitializeComponent();
 
+            Logger.Info("Приложение запущено!");
             /*
             //Dialog for setting pathes
             AppSettings appSettingsDialog = new AppSettings();
@@ -2350,42 +2351,53 @@ namespace PicturesSoft
         private void testButton_Click(object sender, EventArgs e)
         {
             var fileName = @"D:\Work\Проба.xlsx";
-            var connectionString = string.Format("Provider=Microsoft.Jet.OLEDB.4.0; data source={0}; Extended Properties=Excel 8.0;", fileName);
-
-            //List<Child> children = new List<Child>();
-            //List<Group> groups = new List<Group>();
+            var connectionString = string.Format("Provider=Microsoft.Jet.OLEDB.4.0; " +
+                "data source={0}; Extended Properties=Excel 8.0;", fileName);
 
             using (OleDbConnection connection = new OleDbConnection(connectionString))
             {
-                connection.Open();              
-
-                OleDbCommand command2 = new OleDbCommand("select * from [List2$]", connection);
-                using (OleDbDataReader dr = command2.ExecuteReader())
+                try
                 {
-                    while (dr.Read())
+                    connection.Open();
+                    OleDbCommand command2 = new OleDbCommand("select * from [List2$]", connection);
+                    using (OleDbDataReader dr = command2.ExecuteReader())
                     {
-                        GroupRep.AddGroup(Group.CreateGroup(
-                            int.Parse(dr[1].ToString()),
-                            dr[0].ToString(),
-                            string.Empty
-                            ));
+                        while (dr.Read())
+                        {
+                            GroupRep.AddGroup(Group.CreateGroup(
+                                int.Parse(dr[1].ToString()),
+                                dr[0].ToString(),
+                                string.Empty
+                                ));
+                        }
+                    }
+
+                    OleDbCommand command1 = new OleDbCommand("select * from [List1$]", connection);
+                    using (OleDbDataReader dr = command1.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            ChildRep.AddChild(Child.CreateChild(
+                                int.Parse(dr[0].ToString()),
+                                dr[1].ToString() + dr[2].ToString(),
+                                dr[1].ToString() + dr[2].ToString(),
+                                int.Parse(dr[3].ToString()),
+                                string.Empty
+                                ));
+                        }
                     }
                 }
-
-                OleDbCommand command1 = new OleDbCommand("select * from [List1$]", connection);
-                using (OleDbDataReader dr = command1.ExecuteReader())
+                catch(Exception excep)
                 {
-                    while (dr.Read())
-                    {
-                        ChildRep.AddChild(Child.CreateChild(
-                            int.Parse(dr[0].ToString()),
-                            dr[1].ToString() + dr[2].ToString(),
-                            dr[1].ToString() + dr[2].ToString(),
-                            int.Parse(dr[3].ToString()),
-                            string.Empty
-                            ));
-                    }
+                    Logger.Error("Ошибка при выполнении функции загрузки с Excel файла", excep);
+                    MessageBox.Show(excep.Message + "\nВозникла ошибка при ыполнении функции загрузки с Excel файла",
+                        "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+                finally
+                {
+                    if (connection.State == ConnectionState.Open)
+                        connection.Close();
+                }                
             }
             
         }

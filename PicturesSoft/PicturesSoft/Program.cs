@@ -20,7 +20,7 @@ namespace PicturesSoft
 
             // Add handler to handle the exception raised by additional threads
             AppDomain.CurrentDomain.UnhandledException +=
-            new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+                new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
             Application.ThreadException +=
                 new ThreadExceptionEventHandler(
@@ -29,6 +29,7 @@ namespace PicturesSoft
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());
+            Logger.Info("Приложение успешно завершено!");
         }
 
         static void CurrentDomain_UnhandledException
@@ -43,6 +44,8 @@ namespace PicturesSoft
 
         static void ShowExceptionDetails(Exception Ex)
         {
+            Logger.Fatal(Ex);
+            Logger.Info("Приложение завершено c ошибкой!");
             // Do logging of exception details
             MessageBox.Show(Ex.Message, Ex.TargetSite.ToString(),
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -97,6 +100,9 @@ namespace PicturesSoft
                 ex.GetType() +
                 "\n\nStack Trace:\n" +
                 ex.StackTrace;
+
+            Logger.Fatal(errorMessage);
+            Logger.Info("Приложение завершено c ошибкой!");
 
             return MessageBox.Show(errorMessage,
                 "Application Error",
