@@ -190,7 +190,10 @@ namespace PicturesSoft
                 destFolderName = PredeterminedDestImgFolderPath +
                     "\\" + fileName;
 
-                if(!SourceFullFileName.Equals(destFolderName))
+                string oldFileName =
+                        InitImgPath.Substring(InitImgPath.LastIndexOf("\\") + 1);
+
+                if (!SourceFullFileName.Equals(destFolderName))
                 {
                     if (!imgExtension.Equals(".png"))
                     {
@@ -203,27 +206,21 @@ namespace PicturesSoft
                             {
                                 img.Save(destFolderName, ImageFormat.Png);
                             }
-                            catch
+                            catch(Exception excep)
                             {
-                                MessageBox.Show("Failed to save image to Png format.", "Error",
-                                MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                return;
+                                Logger.Error("Не удалось сохранить картинку в .png формате!", excep);
+                                MessageBox.Show("Не удалось сохранить картинку в .png формате!", "Ошибка",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
                         }
                     }
                     else
                     {
-                        if (SourceFullFileName.Contains(PredeterminedDestImgFolderPath))
-                            File.Move(SourceFullFileName, destFolderName);
-                        else
-                            File.Copy(SourceFullFileName, destFolderName);
+                        File.Copy(SourceFullFileName, destFolderName);                     
                     }
 
                     if (WorkMode.WorkType.Equals(WorkModeType.Edit))
                     {
-                        string oldFileName =
-                        InitImgPath.Substring(InitImgPath.LastIndexOf("\\") + 1);
-
                         if (!SourceFullFileName.Contains(PredeterminedDestImgFolderPath)
                             && !oldFileName.Equals(fileName))
                             File.Delete(InitImgPath);

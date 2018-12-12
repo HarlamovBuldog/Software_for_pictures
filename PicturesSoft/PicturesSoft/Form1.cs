@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -503,34 +504,32 @@ namespace PicturesSoft
             imageGroupListViewCollection.ImageSize = new Size(64, 64);
             imageGroupListViewCollection.ColorDepth = ColorDepth.Depth32Bit;
 
-            String[] imageFiles = Directory.GetFiles(DestImgFolderPath);
-
             int imgIndexCounter = 0;
 
             foreach (Group gr in GroupRep.GetGroups())
             {
-                //< filling image collection for groupListView
-                foreach (var imgFile in imageFiles)
-                {
-                    if (imgFile.Substring(imgFile.LastIndexOf("\\") + 1)
-                        .Equals(gr.ImgName))
-                    {
-                        using (Stream fs = new FileStream(imgFile, FileMode.Open, FileAccess.Read))
-                            imageGroupListViewCollection.Images.Add(Image.FromStream(fs));
-                    }
-                }
-                //>
+                string imgFileName = DestImgFolderPath + @"\" + gr.ImgName;
 
-                //< filling groupListView
                 ListViewItem lvi = new ListViewItem();
                 lvi.Text = gr.Name;
                 lvi.Tag = gr;
-                lvi.ImageIndex = imgIndexCounter;
 
-                this.groupsListView.Items.Add(lvi);
-
-                imgIndexCounter++;
-                //>
+                if (File.Exists(imgFileName))
+                {
+                    using (Stream fs = new FileStream(imgFileName, FileMode.Open, FileAccess.Read))
+                    {
+                        imageGroupListViewCollection.Images.Add(Image.FromStream(fs));
+                    }
+                        
+                    lvi.ImageIndex = imgIndexCounter;
+                    imgIndexCounter++;
+                }
+                else
+                {
+                    lvi.ImageIndex = -1;
+                }
+                                
+                this.groupsListView.Items.Add(lvi);                             
             }
 
             this.groupsListView.LargeImageList = imageGroupListViewCollection;
@@ -555,7 +554,7 @@ namespace PicturesSoft
 
         private void ChildListViewRedraw()
         {
-            var childsListBelongToGroup = ChildRep.GetChildsBelongToGroup(groupOwner.Id);
+            List<Child> childsListBelongToGroup = ChildRep.GetChildsBelongToGroup(groupOwner.Id);
 
             if (this.childsListView.Items.Count != 0)
             {
@@ -574,10 +573,8 @@ namespace PicturesSoft
 
             //< Image collection init for childListView
             ImageList imageChildListViewCollection = new ImageList();
-            imageChildListViewCollection.ImageSize = new Size(64, 64);
+            imageChildListViewCollection.ImageSize = new Size(100, 66);
             imageChildListViewCollection.ColorDepth = ColorDepth.Depth32Bit;
-
-            String[] imageFiles = Directory.GetFiles(DestImgFolderPath);
 
             int imgIndexCounter = 0;
             //>
@@ -586,29 +583,30 @@ namespace PicturesSoft
             {
                 //< filling image collection for childListView
 
-                var ch = childsListBelongToGroup[i];
+                Child ch = childsListBelongToGroup[i];
 
-                foreach (var imgFile in imageFiles)
-                {
-                    if (imgFile.Substring(imgFile.LastIndexOf("\\") + 1)
-                        .Equals(ch.ImgName))
-                    {
-                        using (Stream fs = new FileStream(imgFile, FileMode.Open, FileAccess.Read))
-                            imageChildListViewCollection.Images.Add(Image.FromStream(fs));
-                    }
-                }
-                //>
+                string imgFileName = DestImgFolderPath + @"\" + ch.ImgName;
 
-                //< filling childListView
                 ListViewItem lvi = new ListViewItem();
                 lvi.Text = ch.SimpleName;
                 lvi.Tag = ch;
-                lvi.ImageIndex = imgIndexCounter;
+
+                if (File.Exists(imgFileName))
+                {
+                    using (Stream fs = new FileStream(imgFileName, FileMode.Open, FileAccess.Read))
+                    {
+                        imageChildListViewCollection.Images.Add(Image.FromStream(fs));
+                    }
+                        
+                    lvi.ImageIndex = imgIndexCounter;
+                    imgIndexCounter++;
+                }
+                else
+                {
+                    lvi.ImageIndex = -1;
+                }
 
                 this.childsListView.Items.Add(lvi);
-
-                imgIndexCounter++;
-                //>
             }
 
             this.childsListView.LargeImageList = imageChildListViewCollection;
@@ -1391,9 +1389,6 @@ namespace PicturesSoft
             if (isFuncNeededToAbort)
                 return;
 
-            //if (File.Exists(UnixSpecifedXmlCnfgFilePath))
-            //    File.Delete(UnixSpecifedXmlCnfgFilePath);
-
             if (File.Exists(XmlCnfgFilePath))
                 MakeUnixSpecifiedXmlConfigFile();
 
@@ -1431,9 +1426,10 @@ namespace PicturesSoft
             filesNotificationInfoBeforeDownloadColumHeaderslvi.SubItems.Add("Требуется");
             //>
 
-            //List<KeyValuePair<bool, string>> listOfAllFileNamesNeededToDownloadWithActionIdentif =
-            //new List<KeyValuePair<bool, string>>();
+            #region Comparing MD5 hash sums on REMOTE cash box with the same files on LOCAL machine and filling related lists
+
             bool isXmlConfigFileNeededToDownload = true;
+
             //bool = true if file is needed to be replaced.
             List<KeyValuePair<bool, string>> listOfAllImageFileNamesNeededToDownloadWithReplacementIdentif =
                 new List<KeyValuePair<bool, string>>();
@@ -1473,8 +1469,6 @@ namespace PicturesSoft
                         {
                             xmlConfigItem.SubItems.Add("Присутствует");
                             xmlConfigItem.SubItems.Add("Загрузка с заменой");
-                            //listOfAllImageFileNamesNeededToDownloadWithReplacementIdentif.Add(
-                               // new KeyValuePair<bool, string>(true, "weightCatalog-xml-config.xml"));
                         }
                         else
                         {
@@ -1486,8 +1480,6 @@ namespace PicturesSoft
                     {
                         xmlConfigItem.SubItems.Add("Отсутствует");
                         xmlConfigItem.SubItems.Add("Загрузка");
-                        //listOfAllImageFileNamesNeededToDownloadWithReplacementIdentif.Add(
-                               // new KeyValuePair<bool, string>(false, "weightCatalog-xml-config.xml"));
                     }                    
                     //>
 
@@ -1598,6 +1590,8 @@ namespace PicturesSoft
             if (isFuncNeededToAbort)
                 return;
 
+            #endregion //Comparing MD5 hash sums on REMOTE cash box with the same files on LOCAL machine and filling related lists
+
             bool noActionsNeeded = true;
 
             //We are changing text of "status" field for corresponding cashbox if needed. 
@@ -1690,7 +1684,7 @@ namespace PicturesSoft
                         catch (Exception excep)
                         {
                             //write exception to log here
-                            //listOfImageFilesThatCauseErrors.Add("weightCatalog-xml-config.xml");
+                            Logger.Error("Возникла ошибка при загрузке файлов с кассы.", excep);
                             xmlConfigItem.SubItems.Add("Ошибка");
                         }
                     }
@@ -1713,6 +1707,7 @@ namespace PicturesSoft
                         catch (Exception excep)
                         {
                             //write exception to log here
+                            Logger.Error("Возникла ошибка при загрузке файлов с кассы.", excep);
                             imageFileLvi.SubItems.Add("Ошибка");
                         }
                     }
@@ -1735,6 +1730,7 @@ namespace PicturesSoft
                         catch (Exception excep)
                         {
                             //write exception to log here
+                            Logger.Error("Возникла ошибка при загрузке файлов с кассы.", excep);
                             imageFileLvi.SubItems.Add("Ошибка");
                         }
                     }
@@ -1997,10 +1993,7 @@ namespace PicturesSoft
                 filesNotificationInfoBeforeUploadColumHeaderslvi.BackColor = Color.Blue;
                 filesNotificationInfoBeforeUploadColumHeaderslvi.SubItems.Add("Состояние");
                 filesNotificationInfoBeforeUploadColumHeaderslvi.SubItems.Add("Требуется");
-                //>
-
-                //List<KeyValuePair<bool, string>> listOfAllFileNamesNeededToDownloadWithActionIdentif =
-                //new List<KeyValuePair<bool, string>>();                
+                //>               
 
                 bool isTemplateInfoUploadingToCashBoxNeededToAbort = false;
 
@@ -2169,7 +2162,8 @@ namespace PicturesSoft
             DialogResult userDecision = summaryNotificationFormBeforeUpload.ShowDialog();
             summaryNotificationFormBeforeUpload.Dispose();
 
-            if (noActionsNeededForAllCashBoxes || userDecision == DialogResult.Cancel || userDecision == DialogResult.No || userDecision == DialogResult.Abort)
+            if (noActionsNeededForAllCashBoxes || userDecision == DialogResult.Cancel 
+                || userDecision == DialogResult.No || userDecision == DialogResult.Abort)
                 return;
 
             foreach (CashBox cashBox in listOfCheckedCashBoxes)
@@ -2222,6 +2216,7 @@ namespace PicturesSoft
                             catch (Exception excep)
                             {
                                 //write exception to log here
+                                Logger.Error("Возникла ошибка при отправке файлов на кассу.", excep);
                                 xmlConfigItem.SubItems.Add("Ошибка");
                             }                                
                         }
@@ -2237,13 +2232,14 @@ namespace PicturesSoft
 
                             try
                             {
-                                client.Download("/home/tc/storage/crystal-cash/images/" + fileNameNeededToUploadWithReplacement,
-                                new FileInfo(DestImgFolderPath + @"\" + fileNameNeededToUploadWithReplacement));
+                                client.Upload(new FileInfo(DestImgFolderPath + @"\" + fileNameNeededToUploadWithReplacement), 
+                                    "/home/tc/storage/crystal-cash/images/" + fileNameNeededToUploadWithReplacement);
                                 imageFileLvi.SubItems.Add("Успешно");
                             }
                             catch (Exception excep)
                             {
                                 //write exception to log here
+                                Logger.Error("Возникла ошибка при отправке файлов на кассу.", excep);
                                 imageFileLvi.SubItems.Add("Ошибка");
                             }
                         }
@@ -2259,13 +2255,14 @@ namespace PicturesSoft
 
                             try
                             {
-                                client.Download("/home/tc/storage/crystal-cash/images/" + fileNameNeededToUploadWithoutReplacement,
-                                new FileInfo(DestImgFolderPath + @"\" + fileNameNeededToUploadWithoutReplacement));
+                                client.Upload(new FileInfo(DestImgFolderPath + @"\" + fileNameNeededToUploadWithoutReplacement),
+                                    "/home/tc/storage/crystal-cash/images/" + fileNameNeededToUploadWithoutReplacement);
                                 imageFileLvi.SubItems.Add("Успешно");
                             }
                             catch (Exception excep)
                             {
                                 //write exception to log here
+                                Logger.Error("Возникла ошибка при отправке файлов на кассу.", excep);
                                 imageFileLvi.SubItems.Add("Ошибка");
                             }
                         }
@@ -2359,30 +2356,58 @@ namespace PicturesSoft
                 try
                 {
                     connection.Open();
-                    OleDbCommand command2 = new OleDbCommand("select * from [List2$]", connection);
+                    OleDbCommand command2 = new OleDbCommand("select * from [PizzaGroups$]", connection);
                     using (OleDbDataReader dr = command2.ExecuteReader())
                     {
                         while (dr.Read())
                         {
                             GroupRep.AddGroup(Group.CreateGroup(
                                 int.Parse(dr[1].ToString()),
-                                dr[0].ToString(),
+                                "Пицца " + dr[0].ToString(),
                                 string.Empty
                                 ));
                         }
                     }
 
-                    OleDbCommand command1 = new OleDbCommand("select * from [List1$]", connection);
+                    OleDbCommand command1 = new OleDbCommand("select * from [Pizza$]", connection);
                     using (OleDbDataReader dr = command1.ExecuteReader())
                     {
                         while (dr.Read())
                         {
+                            int pizzaCode = int.Parse(dr[0].ToString());
+
+                            string sourceImgPath = @"D:\Work\PizzaImages\" + dr[3].ToString() + ".jpg";
+                            string destImgPath = DestImgFolderPath + @"\" + pizzaCode + ".png";
+
+                            if (!File.Exists(destImgPath))
+                            {
+                                if(File.Exists(sourceImgPath))
+                                {
+                                    Image img;
+                                    using (Stream fs = new FileStream(sourceImgPath, FileMode.Open, FileAccess.ReadWrite))
+                                    {
+                                        img = Image.FromStream(fs);
+
+                                        try
+                                        {
+                                            img.Save(destImgPath, ImageFormat.Png);
+                                        }
+                                        catch
+                                        {
+                                            MessageBox.Show("Failed to save image to Png format.", "Error",
+                                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                            return;
+                                        }
+                                    }
+                                }                                
+                            }
+
                             ChildRep.AddChild(Child.CreateChild(
-                                int.Parse(dr[0].ToString()),
-                                dr[1].ToString() + dr[2].ToString(),
-                                dr[1].ToString() + dr[2].ToString(),
-                                int.Parse(dr[3].ToString()),
-                                string.Empty
+                                pizzaCode,
+                                dr[1].ToString(),
+                                dr[1].ToString(),
+                                int.Parse(dr[2].ToString()),
+                                pizzaCode + ".png"
                                 ));
                         }
                     }
@@ -2399,7 +2424,8 @@ namespace PicturesSoft
                         connection.Close();
                 }                
             }
-            
+
+            GroupListViewRedraw();
         }
     }
 }
