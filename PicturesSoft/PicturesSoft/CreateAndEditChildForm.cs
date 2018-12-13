@@ -134,7 +134,7 @@ namespace PicturesSoft
                     isImgNeeded = false;
                 }
             }
-            else if (!isValidChildCode || !isValidChildName || isValidChildSimpleName || !isValidChildImgPath)
+            else if (!isValidChildCode || !isValidChildName || !isValidChildSimpleName || !isValidChildImgPath)
             {
                 return;
             }
