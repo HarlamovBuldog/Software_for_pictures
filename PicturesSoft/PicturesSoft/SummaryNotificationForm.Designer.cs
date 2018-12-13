@@ -41,6 +41,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupListControl1.AutoScroll = true;
             this.groupListControl1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
+            this.groupListControl1.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.groupListControl1.Location = new System.Drawing.Point(24, 12);
             this.groupListControl1.Name = "groupListControl1";
             this.groupListControl1.SingleItemOnlyExpansion = false;
@@ -50,6 +51,7 @@
             // 
             // confirmButton
             // 
+            this.confirmButton.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.confirmButton.Location = new System.Drawing.Point(115, 500);
             this.confirmButton.Name = "confirmButton";
             this.confirmButton.Size = new System.Drawing.Size(75, 23);
@@ -60,6 +62,7 @@
             // 
             // cancelButton
             // 
+            this.cancelButton.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.cancelButton.Location = new System.Drawing.Point(352, 499);
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(75, 23);
@@ -70,6 +73,7 @@
             // 
             // descriptionTextBox
             // 
+            this.descriptionTextBox.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.descriptionTextBox.Location = new System.Drawing.Point(90, 448);
             this.descriptionTextBox.Multiline = true;
             this.descriptionTextBox.Name = "descriptionTextBox";

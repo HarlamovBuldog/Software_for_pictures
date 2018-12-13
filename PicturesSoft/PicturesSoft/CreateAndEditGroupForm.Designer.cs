@@ -48,9 +48,11 @@
             // 
             // opnFileDlgGrBtn
             // 
-            this.opnFileDlgGrBtn.Location = new System.Drawing.Point(280, 126);
+            this.opnFileDlgGrBtn.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.opnFileDlgGrBtn.Location = new System.Drawing.Point(327, 155);
+            this.opnFileDlgGrBtn.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.opnFileDlgGrBtn.Name = "opnFileDlgGrBtn";
-            this.opnFileDlgGrBtn.Size = new System.Drawing.Size(92, 25);
+            this.opnFileDlgGrBtn.Size = new System.Drawing.Size(107, 31);
             this.opnFileDlgGrBtn.TabIndex = 18;
             this.opnFileDlgGrBtn.Text = "Проводник...";
             this.opnFileDlgGrBtn.UseVisualStyleBackColor = true;
@@ -59,60 +61,71 @@
             // groupImgPathTextBox
             // 
             this.groupImgPathTextBox.Enabled = false;
-            this.groupImgPathTextBox.Location = new System.Drawing.Point(130, 126);
+            this.groupImgPathTextBox.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.groupImgPathTextBox.Location = new System.Drawing.Point(152, 155);
+            this.groupImgPathTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.groupImgPathTextBox.Name = "groupImgPathTextBox";
-            this.groupImgPathTextBox.Size = new System.Drawing.Size(135, 20);
+            this.groupImgPathTextBox.Size = new System.Drawing.Size(157, 23);
             this.groupImgPathTextBox.TabIndex = 17;
             this.groupImgPathTextBox.Validating += new System.ComponentModel.CancelEventHandler(this.groupImgPathTextBox_Validating);
             // 
             // groupNameTextBox
             // 
-            this.groupNameTextBox.Location = new System.Drawing.Point(130, 80);
+            this.groupNameTextBox.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.groupNameTextBox.Location = new System.Drawing.Point(152, 98);
+            this.groupNameTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.groupNameTextBox.Name = "groupNameTextBox";
-            this.groupNameTextBox.Size = new System.Drawing.Size(135, 20);
+            this.groupNameTextBox.Size = new System.Drawing.Size(157, 23);
             this.groupNameTextBox.TabIndex = 16;
             this.groupNameTextBox.Validating += new System.ComponentModel.CancelEventHandler(this.groupNameTextBox_Validating);
             // 
             // groupIdTextBox
             // 
-            this.groupIdTextBox.Location = new System.Drawing.Point(131, 35);
+            this.groupIdTextBox.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.groupIdTextBox.Location = new System.Drawing.Point(153, 43);
+            this.groupIdTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.groupIdTextBox.Name = "groupIdTextBox";
-            this.groupIdTextBox.Size = new System.Drawing.Size(135, 20);
+            this.groupIdTextBox.Size = new System.Drawing.Size(157, 23);
             this.groupIdTextBox.TabIndex = 15;
             this.groupIdTextBox.Validating += new System.ComponentModel.CancelEventHandler(this.groupIdTextBox_Validating);
             // 
             // imgPathLable
             // 
             this.imgPathLable.AutoSize = true;
-            this.imgPathLable.Location = new System.Drawing.Point(18, 132);
+            this.imgPathLable.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.imgPathLable.Location = new System.Drawing.Point(21, 162);
             this.imgPathLable.Name = "imgPathLable";
-            this.imgPathLable.Size = new System.Drawing.Size(107, 13);
+            this.imgPathLable.Size = new System.Drawing.Size(121, 16);
             this.imgPathLable.TabIndex = 14;
             this.imgPathLable.Text = "Название картинки";
             // 
             // groupNameLabel
             // 
             this.groupNameLabel.AutoSize = true;
-            this.groupNameLabel.Location = new System.Drawing.Point(41, 87);
+            this.groupNameLabel.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.groupNameLabel.Location = new System.Drawing.Point(48, 107);
             this.groupNameLabel.Name = "groupNameLabel";
-            this.groupNameLabel.Size = new System.Drawing.Size(83, 13);
+            this.groupNameLabel.Size = new System.Drawing.Size(94, 16);
             this.groupNameLabel.TabIndex = 13;
             this.groupNameLabel.Text = "Наименование";
             // 
             // groupIdName
             // 
             this.groupIdName.AutoSize = true;
-            this.groupIdName.Location = new System.Drawing.Point(99, 38);
+            this.groupIdName.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.groupIdName.Location = new System.Drawing.Point(115, 47);
             this.groupIdName.Name = "groupIdName";
-            this.groupIdName.Size = new System.Drawing.Size(26, 13);
+            this.groupIdName.Size = new System.Drawing.Size(29, 16);
             this.groupIdName.TabIndex = 12;
             this.groupIdName.Text = "Код";
             // 
             // CreateAndEditGrCancelBtn
             // 
-            this.CreateAndEditGrCancelBtn.Location = new System.Drawing.Point(67, 223);
+            this.CreateAndEditGrCancelBtn.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.CreateAndEditGrCancelBtn.Location = new System.Drawing.Point(78, 274);
+            this.CreateAndEditGrCancelBtn.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.CreateAndEditGrCancelBtn.Name = "CreateAndEditGrCancelBtn";
-            this.CreateAndEditGrCancelBtn.Size = new System.Drawing.Size(75, 23);
+            this.CreateAndEditGrCancelBtn.Size = new System.Drawing.Size(87, 28);
             this.CreateAndEditGrCancelBtn.TabIndex = 11;
             this.CreateAndEditGrCancelBtn.Text = "Отмена";
             this.CreateAndEditGrCancelBtn.UseVisualStyleBackColor = true;
@@ -120,9 +133,11 @@
             // 
             // CreateAndEditGrSaveBtn
             // 
-            this.CreateAndEditGrSaveBtn.Location = new System.Drawing.Point(253, 224);
+            this.CreateAndEditGrSaveBtn.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.CreateAndEditGrSaveBtn.Location = new System.Drawing.Point(295, 276);
+            this.CreateAndEditGrSaveBtn.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.CreateAndEditGrSaveBtn.Name = "CreateAndEditGrSaveBtn";
-            this.CreateAndEditGrSaveBtn.Size = new System.Drawing.Size(75, 23);
+            this.CreateAndEditGrSaveBtn.Size = new System.Drawing.Size(87, 28);
             this.CreateAndEditGrSaveBtn.TabIndex = 10;
             this.CreateAndEditGrSaveBtn.Text = "Сохранить";
             this.CreateAndEditGrSaveBtn.UseVisualStyleBackColor = true;
@@ -132,9 +147,10 @@
             // 
             this.addToTheEndRadioBtn.AutoSize = true;
             this.addToTheEndRadioBtn.Checked = true;
-            this.addToTheEndRadioBtn.Location = new System.Drawing.Point(19, 3);
+            this.addToTheEndRadioBtn.Location = new System.Drawing.Point(22, 4);
+            this.addToTheEndRadioBtn.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.addToTheEndRadioBtn.Name = "addToTheEndRadioBtn";
-            this.addToTheEndRadioBtn.Size = new System.Drawing.Size(156, 17);
+            this.addToTheEndRadioBtn.Size = new System.Drawing.Size(204, 25);
             this.addToTheEndRadioBtn.TabIndex = 19;
             this.addToTheEndRadioBtn.TabStop = true;
             this.addToTheEndRadioBtn.Text = "Добавить в конец списка";
@@ -143,9 +159,10 @@
             // addAfterSelectedRadioBtn
             // 
             this.addAfterSelectedRadioBtn.AutoSize = true;
-            this.addAfterSelectedRadioBtn.Location = new System.Drawing.Point(19, 26);
+            this.addAfterSelectedRadioBtn.Location = new System.Drawing.Point(22, 32);
+            this.addAfterSelectedRadioBtn.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.addAfterSelectedRadioBtn.Name = "addAfterSelectedRadioBtn";
-            this.addAfterSelectedRadioBtn.Size = new System.Drawing.Size(172, 17);
+            this.addAfterSelectedRadioBtn.Size = new System.Drawing.Size(227, 25);
             this.addAfterSelectedRadioBtn.TabIndex = 20;
             this.addAfterSelectedRadioBtn.Text = "Добавить после выбранного";
             this.addAfterSelectedRadioBtn.UseVisualStyleBackColor = true;
@@ -154,9 +171,11 @@
             // 
             this.radioBtnsStoragePanel.Controls.Add(this.addToTheEndRadioBtn);
             this.radioBtnsStoragePanel.Controls.Add(this.addAfterSelectedRadioBtn);
-            this.radioBtnsStoragePanel.Location = new System.Drawing.Point(111, 164);
+            this.radioBtnsStoragePanel.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.radioBtnsStoragePanel.Location = new System.Drawing.Point(129, 202);
+            this.radioBtnsStoragePanel.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.radioBtnsStoragePanel.Name = "radioBtnsStoragePanel";
-            this.radioBtnsStoragePanel.Size = new System.Drawing.Size(217, 53);
+            this.radioBtnsStoragePanel.Size = new System.Drawing.Size(253, 65);
             this.radioBtnsStoragePanel.TabIndex = 21;
             // 
             // errorProvider1
@@ -165,9 +184,9 @@
             // 
             // CreateAndEditGroupForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(395, 259);
+            this.ClientSize = new System.Drawing.Size(461, 319);
             this.Controls.Add(this.radioBtnsStoragePanel);
             this.Controls.Add(this.opnFileDlgGrBtn);
             this.Controls.Add(this.groupImgPathTextBox);
@@ -178,6 +197,8 @@
             this.Controls.Add(this.groupIdName);
             this.Controls.Add(this.CreateAndEditGrCancelBtn);
             this.Controls.Add(this.CreateAndEditGrSaveBtn);
+            this.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "CreateAndEditGroupForm";
             this.radioBtnsStoragePanel.ResumeLayout(false);
             this.radioBtnsStoragePanel.PerformLayout();
