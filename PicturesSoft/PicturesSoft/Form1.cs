@@ -47,7 +47,8 @@ namespace PicturesSoft
         /// <summary>
         /// Listview page number under the same listview that is tracked globally.
         /// </summary>
-        public int GlobalListViewRelatedPageNumber { get; private set; }
+        public int GlobalChildsListViewRelatedPageNumber { get; private set; }
+        public int GlobalGroupsListViewRelatedPageNumber { get; private set; }
         public ChildRepository ChildRep { get; private set; } = new ChildRepository();
         public GroupRepository GroupRep { get; private set; } = new GroupRepository();
         public List<Shop> ListOfShopsWithCashBoxes { get; private set; } = new List<Shop>();
@@ -124,17 +125,9 @@ namespace PicturesSoft
                 this.createNewItemBtn.Enabled = false;
                 this.editSelectedBtn.Enabled = false;
                 this.deleteSelectedBtn.Enabled = false;
-            }                
+            }
 
-            //filling comboBox
-            if(ListOfShopsWithCashBoxes.Count != 0)
-                ShopListComboBoxInit();
-
-            //filling group listview
-            if(GroupRep.GetGroups().Count != 0)
-                GroupListViewRedraw();
-
-            MainMenuStripInit();
+            GlobalGroupsListViewRelatedPageNumber= 1;            
         }
 
         private void RepositoriesInit()
@@ -156,10 +149,23 @@ namespace PicturesSoft
             this.childsListView.Hide();
             this.BackToGroupsBtn.Hide();
 
-            this.moveBackBetweenPagesBtn.Enabled = false;
-            this.moveForwardBetweenPagesBtn.Enabled = false;
-
             this.moveObjectsBtnPanel.Enabled = false;
+
+            //filling comboBox
+            if (ListOfShopsWithCashBoxes.Count != 0)
+                ShopListComboBoxInit();
+
+            this.MinimumSize = this.Size;
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+
+            //filling group listview
+            if (GroupRep.GetGroups().Count != 0)
+            {
+                GroupListViewRedraw();
+                //NavBtwPagesTableLayoutRedraw();
+            }
+
+            MainMenuStripInit();            
         }
 
         /// <summary>
@@ -266,7 +272,7 @@ namespace PicturesSoft
                 GroupRep.AddGroup(newGroup);
             else
             {
-                var insertAfterGroup = (Group)globalSelectedItem;
+                Group insertAfterGroup = (Group)globalSelectedItem;
                 GroupRep.AddGroup(newGroup, insertAfterGroup);
             }
             GroupListViewRedraw();
@@ -278,6 +284,8 @@ namespace PicturesSoft
 
             Group oldGroup = (Group)globalSelectedItem;
 
+            //thought it's better to pass new object then reference. But then there is
+            //problem when List.Contains doesn't recognize this new object.
             /*
             Group oldGroup = Group.CreateGroup(
                 castGroup.Id,
@@ -320,12 +328,12 @@ namespace PicturesSoft
                 ChildRep.AddChild(newChild);
             else
             {
-                var insertAfterChild = (Child)globalSelectedItem;
+                Child insertAfterChild = (Child)globalSelectedItem;
                 ChildRep.AddChild(newChild, insertAfterChild);
             }
 
             ChildListViewRedraw();
-            NavBtwPagesTableLayoutRedraw();
+            //NavBtwPagesTableLayoutRedraw();
         }
 
         public void UpdateChild(Child childToUpdate)
@@ -350,17 +358,14 @@ namespace PicturesSoft
             File.Delete(imgToDeleteFilePath);
 
             ChildListViewRedraw();
-            NavBtwPagesTableLayoutRedraw();
+            //NavBtwPagesTableLayoutRedraw();
         }
 
         #endregion //Public Child methods
 
-        public void MakeLocalCatalogCall(string serverId, string port,
-            string user, string passwd, string dataBaseName)
-        {
-            //MakeLocalCatalog(serverId, port, user, passwd, dataBaseName);
-        }
-
+        //old function for creating your own xml-config file from scrap without
+        //editing existing file or downloading it
+        //currently unnecessary
         public void CreateFinalXmlFile()
         {
             XDocument xDoc = new XDocument();
@@ -494,20 +499,40 @@ namespace PicturesSoft
 
         private void GroupListViewRedraw()
         {
+            List<Group> groupsList = GroupRep.GetGroups();
+
             if (this.groupsListView.Items.Count != 0)
             {
                 this.groupsListView.Clear();
             }
 
+            int groupsListCount = groupsList.Count;
+
+            int startIndexForGroupListRedraw = (GlobalGroupsListViewRelatedPageNumber- 1) * 9;
+            int lastIndexFotGroupListRedraw = startIndexForGroupListRedraw + 9;
+
+            //check if lastIndexFotChildListRedraw is not beyond the last index of repo
+            if (lastIndexFotGroupListRedraw > groupsListCount - 1)
+                lastIndexFotGroupListRedraw = startIndexForGroupListRedraw + groupsListCount % 9;
+
             //Image collection for listview
             ImageList imageGroupListViewCollection = new ImageList();
-            imageGroupListViewCollection.ImageSize = new Size(64, 64);
+            if(this.Size.Equals(this.MinimumSize))
+            {
+                imageGroupListViewCollection.ImageSize = new Size(150, 99);
+            }
+            else
+            {
+                imageGroupListViewCollection.ImageSize = new Size(250, 165);
+            }            
             imageGroupListViewCollection.ColorDepth = ColorDepth.Depth32Bit;
 
             int imgIndexCounter = 0;
 
-            foreach (Group gr in GroupRep.GetGroups())
+            for (int i = startIndexForGroupListRedraw; i < lastIndexFotGroupListRedraw; i++)
             {
+                Group gr = groupsList[i];
+
                 string imgFileName = DestImgFolderPath + @"\" + gr.ImgName;
 
                 ListViewItem lvi = new ListViewItem();
@@ -534,6 +559,9 @@ namespace PicturesSoft
 
             this.groupsListView.LargeImageList = imageGroupListViewCollection;
 
+            NavBtwPagesTableLayoutRedraw();
+            SetMoveBetweenPagesBtnsEnabledProperty();
+
             this.Refresh();
             this.Invalidate();
             this.groupsListView.Refresh();
@@ -546,7 +574,8 @@ namespace PicturesSoft
                 && globalSelectedItem.GetType().Name.Equals("Group"))
             {
                 int indexOfGlobalSelectedItemFromRepoList =
-                    GroupRep.GetGroups().IndexOf((Group)globalSelectedItem);
+                    GroupRep.GetGroups().IndexOf((Group)globalSelectedItem)
+                    - (9 * (GlobalGroupsListViewRelatedPageNumber- 1));
                 this.groupsListView.Items[indexOfGlobalSelectedItemFromRepoList]
                     .Selected = true;
             }
@@ -563,7 +592,7 @@ namespace PicturesSoft
 
             int childsListBelongToGroupCount = childsListBelongToGroup.Count;
 
-            int startIndexForChildListRedraw = (GlobalListViewRelatedPageNumber - 1) * 9;
+            int startIndexForChildListRedraw = (GlobalChildsListViewRelatedPageNumber - 1) * 9;
             int lastIndexFotChildListRedraw = startIndexForChildListRedraw + 9;
 
             //check if lastIndexFotChildListRedraw is not beyond the last index of repo
@@ -573,7 +602,14 @@ namespace PicturesSoft
 
             //< Image collection init for childListView
             ImageList imageChildListViewCollection = new ImageList();
-            imageChildListViewCollection.ImageSize = new Size(100, 66);
+            if (this.Size.Equals(this.MinimumSize))
+            {
+                imageChildListViewCollection.ImageSize = new Size(150, 99);
+            }
+            else
+            {
+                imageChildListViewCollection.ImageSize = new Size(250, 165);
+            }
             imageChildListViewCollection.ColorDepth = ColorDepth.Depth32Bit;
 
             int imgIndexCounter = 0;
@@ -611,6 +647,7 @@ namespace PicturesSoft
 
             this.childsListView.LargeImageList = imageChildListViewCollection;
 
+            NavBtwPagesTableLayoutRedraw();
             SetMoveBetweenPagesBtnsEnabledProperty();
 
             this.Refresh();
@@ -626,7 +663,7 @@ namespace PicturesSoft
             {
                 int indexOfGlobalSelectedItemFromRepoList =
                     ChildRep.GetChildsBelongToGroup(groupOwner.Id).IndexOf((Child)globalSelectedItem)
-                    - (9 * (GlobalListViewRelatedPageNumber - 1));
+                    - (9 * (GlobalChildsListViewRelatedPageNumber - 1));
                 this.childsListView.Items[indexOfGlobalSelectedItemFromRepoList]
                     .Selected = true;
             }
@@ -637,13 +674,25 @@ namespace PicturesSoft
             int navBtwPagesTableLayoutPanelControlsCount = 
                 this.navBtwPagesTableLayout.Controls.Count;
 
-            if (GlobalListViewRelatedPageNumber == 1)
+            int globalListViewRelatedPageNumber = 1;
+
+            if (this.childsListView.Visible == true)
             {
+                globalListViewRelatedPageNumber = GlobalChildsListViewRelatedPageNumber;
+            }
+            else if(this.groupsListView.Visible == true)
+            {
+                globalListViewRelatedPageNumber = GlobalGroupsListViewRelatedPageNumber;
+            }
+
+            if (globalListViewRelatedPageNumber == 1)
+            {
+                this.moveForwardBetweenPagesBtn.Enabled = false;
                 this.moveBackBetweenPagesBtn.Enabled = false;
                 if(navBtwPagesTableLayoutPanelControlsCount > 1)
                     this.moveForwardBetweenPagesBtn.Enabled = true;
             }
-            else if(GlobalListViewRelatedPageNumber < navBtwPagesTableLayoutPanelControlsCount)
+            else if(globalListViewRelatedPageNumber < navBtwPagesTableLayoutPanelControlsCount)
             {
                 this.moveBackBetweenPagesBtn.Enabled = true;
                 this.moveForwardBetweenPagesBtn.Enabled = true;
@@ -661,11 +710,23 @@ namespace PicturesSoft
         /// </summary>
         private void NavBtwPagesTableLayoutRedraw()
         {
-            var childsListBelongToGroup = ChildRep.GetChildsBelongToGroup(groupOwner.Id);
-            int childsListBelongToGroupCount = childsListBelongToGroup.Count;
+            int anyListViewCount = 0;
 
-            int pageNavBtnCount = childsListBelongToGroupCount / 9;
-            if (childsListBelongToGroupCount % 9 != 0)
+            if (groupsListView.Visible == true)
+            {
+                List<Group> groupsList = GroupRep.GetGroups();
+                anyListViewCount = groupsList.Count;
+            }
+            else if(childsListView.Visible == true)
+            {
+                List<Child> childsListBelongToGroup = ChildRep.GetChildsBelongToGroup(groupOwner.Id);
+                anyListViewCount = childsListBelongToGroup.Count;
+            }            
+
+            int pageNavBtnSize = this.moveBackBetweenPagesBtn.Height;
+
+            int pageNavBtnCount = anyListViewCount / 9;
+            if (anyListViewCount % 9 != 0)
                 pageNavBtnCount++;
 
             if (this.navBtwPagesTableLayout.Controls.Count != 0)
@@ -678,12 +739,12 @@ namespace PicturesSoft
             this.navBtwPagesTableLayout.ColumnCount = pageNavBtnCount;
 
             this.navBtwPagesTableLayout.Size = 
-                new System.Drawing.Size(45 * pageNavBtnCount, 45);
+                new System.Drawing.Size(pageNavBtnSize * pageNavBtnCount, pageNavBtnSize);
 
             for (int i = 0; i < pageNavBtnCount; i++)
             {
                 this.navBtwPagesTableLayout.ColumnStyles.Add(
-                    new ColumnStyle() { Width = 45, SizeType = SizeType.Absolute}
+                    new ColumnStyle() { Width = pageNavBtnSize, SizeType = SizeType.Absolute}
                     );
                     
                 //< filling table layout panel
@@ -702,7 +763,7 @@ namespace PicturesSoft
             }
 
             navBtwPagesTableLayout.RowStyles.Add(
-               new RowStyle() { Height = 45, SizeType = SizeType.Absolute }
+               new RowStyle() { Height = pageNavBtnSize, SizeType = SizeType.Absolute }
                );
 
             foreach (var button in this.navBtwPagesTableLayout.Controls.OfType<Button>())
@@ -722,14 +783,25 @@ namespace PicturesSoft
         {
             foreach(Control control in this.navBtwPagesTableLayout.Controls)
             {
-                control.BackColor = Color.LightGray;
+                control.BackColor = Color.Blue;
             }
 
-            if(this.navBtwPagesTableLayout.Controls.Count > 0)
+            int globalListViewRelatedPageNumber = 1;
+
+            if (this.childsListView.Visible == true)
+            {
+                globalListViewRelatedPageNumber = GlobalChildsListViewRelatedPageNumber;
+            }
+            else if (this.groupsListView.Visible == true)
+            {
+                globalListViewRelatedPageNumber = GlobalGroupsListViewRelatedPageNumber;
+            }
+
+            if (this.navBtwPagesTableLayout.Controls.Count > 0)
             {
                 this.navBtwPagesTableLayout
-                .Controls[GlobalListViewRelatedPageNumber - 1]
-                .BackColor = Color.Yellow;
+                .Controls[globalListViewRelatedPageNumber - 1]
+                .BackColor = Color.Red;
             }            
         }
 
@@ -847,29 +919,33 @@ namespace PicturesSoft
             if (groupsListView.SelectedItems.Count == 0)
                 return;
 
-            var indexOfSelectedItem = groupsListView.SelectedIndices[0];
-            groupOwner = GroupRep.GetGroups()[indexOfSelectedItem];
+            this.editSelectedBtn.Enabled = false;
+            this.deleteSelectedBtn.Enabled = false;
 
-            GlobalListViewRelatedPageNumber = 1;
+            //var indexOfSelectedItem = groupsListView.SelectedIndices[0];
+            //groupOwner = GroupRep.GetGroups()[indexOfSelectedItem];
 
-            this.NavBtwPagesTableLayoutRedraw();
+            groupOwner = (Group)globalSelectedItem;
 
-            this.childsListView.BeginUpdate();
-            this.ChildListViewRedraw();
-            this.groupsListView.Hide();
-            this.childsListView.EndUpdate();
+            GlobalChildsListViewRelatedPageNumber = 1;
 
             this.childsListView.Show();
+            this.groupsListView.Hide();
+            //this.NavBtwPagesTableLayoutRedraw();
             this.BackToGroupsBtn.Show();
+
+            this.childsListView.BeginUpdate();
+            this.ChildListViewRedraw();            
+            this.childsListView.EndUpdate();                   
 
             this.catalogOrientationLabel.Text += " > " + groupOwner.Name;
         }
-
+        
         private void groupsListView_VisibleChanged(object sender, EventArgs e)
         {
             this.groupsListView.SelectedItems.Clear();
         }
-
+        
         private void groupsListView_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
         {
             if (groupsListView.SelectedItems.Count != 0)
@@ -877,9 +953,9 @@ namespace PicturesSoft
                 this.editSelectedBtn.Enabled = true;
                 this.deleteSelectedBtn.Enabled = true;
 
-                var indexOfSelectedItem = groupsListView.SelectedIndices[0];
-                var selectedGroup = GroupRep.GetGroups()[indexOfSelectedItem];
-                this.globalSelectedItem = selectedGroup;
+                var indexOfSelectedItem =
+                    GroupRep.GetGroups().IndexOf((Group)groupsListView.SelectedItems[0].Tag);
+                this.globalSelectedItem = GroupRep.GetGroups()[indexOfSelectedItem];
 
                 this.moveObjectsBtnPanel.Enabled = true;
                 this.SetMoveObjBtnsEnabledProperty();
@@ -1079,21 +1155,22 @@ namespace PicturesSoft
 
         private void BackToGroupsBtn_Click(object sender, EventArgs e)
         {
+            //GlobalListViewRelatedPageNumber = 1;
+
             this.groupsListView.Show();
             this.childsListView.Hide();
             this.BackToGroupsBtn.Hide();
 
-            this.moveBackBetweenPagesBtn.Enabled = false;
-            this.moveForwardBetweenPagesBtn.Enabled = false;
+            this.GroupListViewRedraw();            
 
-            if (this.navBtwPagesTableLayout.Controls.Count != 0)
-                this.navBtwPagesTableLayout.Controls.Clear();
+            //NavBtwPagesTableLayoutRedraw();
+            //SetMoveBetweenPagesBtnsEnabledProperty();
 
             int initcatalogOrientationLabelStrLength =
-                this.catalogOrientationLabel.Text.IndexOf('г') + 1;
+                this.catalogOrientationLabel.Text.IndexOf(" > ");
 
             this.catalogOrientationLabel.Text =
-                 this.catalogOrientationLabel.Text.Substring(0, initcatalogOrientationLabelStrLength);
+                 this.catalogOrientationLabel.Text.Substring(0, initcatalogOrientationLabelStrLength);              
         }
 
         private void moveBackBetweenPagesBtn_Click(object sender, EventArgs e)
@@ -1103,9 +1180,16 @@ namespace PicturesSoft
 
             this.moveObjectsBtnPanel.Enabled = false;
 
-            GlobalListViewRelatedPageNumber--;
-            ChildListViewRedraw();
-            makeNavBtwPagesTableLayoutPanelControlHighlighted();
+            if (childsListView.Visible == true)
+            {
+                GlobalChildsListViewRelatedPageNumber--;
+                ChildListViewRedraw();
+            }
+            else if (groupsListView.Visible == true)
+            {
+                GlobalGroupsListViewRelatedPageNumber--;
+                GroupListViewRedraw();                
+            }
         }
 
         private void moveForwardBetweenPagesBtn_Click(object sender, EventArgs e)
@@ -1115,9 +1199,16 @@ namespace PicturesSoft
 
             this.moveObjectsBtnPanel.Enabled = false;
 
-            GlobalListViewRelatedPageNumber++;
-            ChildListViewRedraw();
-            makeNavBtwPagesTableLayoutPanelControlHighlighted();
+            if (childsListView.Visible == true)
+            {
+                GlobalChildsListViewRelatedPageNumber++;
+                ChildListViewRedraw();
+            }
+            else if (groupsListView.Visible == true)
+            {
+                GlobalGroupsListViewRelatedPageNumber++;
+                GroupListViewRedraw();
+            }
         }
 
         private void navBtwPagesButton_Click(object sender, EventArgs eventArgs)
@@ -1127,10 +1218,16 @@ namespace PicturesSoft
 
             this.moveObjectsBtnPanel.Enabled = false;
 
-            GlobalListViewRelatedPageNumber = Int32.Parse(((Button)sender).Text);
-            ChildListViewRedraw();
-            SetMoveBetweenPagesBtnsEnabledProperty();
-            makeNavBtwPagesTableLayoutPanelControlHighlighted();
+            if (this.childsListView.Visible == true)
+            {
+                GlobalChildsListViewRelatedPageNumber = Int32.Parse(((Button)sender).Text);
+                ChildListViewRedraw();
+            }
+            else if (this.groupsListView.Visible == true)
+            {
+                GlobalGroupsListViewRelatedPageNumber = Int32.Parse(((Button)sender).Text);
+                GroupListViewRedraw();
+            }
         }
 
         #endregion //Navigation buttons Events
@@ -1208,6 +1305,12 @@ namespace PicturesSoft
                 int secondGroupIndexToSwap = firstGroupIndexToSwap - 1;
 
                 this.GroupRep.SwapGroups(firstGroupIndexToSwap, secondGroupIndexToSwap);
+
+                if (groupsListView.SelectedIndices[0] % 9 == 0)
+                {
+                    GlobalGroupsListViewRelatedPageNumber--;
+                }
+
                 this.GroupListViewRedraw();
                 RestoreGroupListViewItemHighLightedState();
                 this.groupsListView.Focus();
@@ -1220,9 +1323,9 @@ namespace PicturesSoft
 
                 this.ChildRep.SwapChilds(firstChildIndexToSwap, secondChildIndexToSwap);
 
-                if(secondChildIndexToSwap > 0 && firstChildIndexToSwap % 9 == 0)
+                if(childsListView.SelectedIndices[0] % 9 == 0)
                 {
-                    GlobalListViewRelatedPageNumber--;
+                    GlobalChildsListViewRelatedPageNumber--;
                 }
 
                 this.ChildListViewRedraw();
@@ -1245,6 +1348,12 @@ namespace PicturesSoft
                 int secondGroupIndexToSwap = firstGroupIndexToSwap + 1;
 
                 this.GroupRep.SwapGroups(firstGroupIndexToSwap, secondGroupIndexToSwap);
+
+                if ((groupsListView.SelectedIndices[0] + 1) % 9 == 0)
+                {
+                    GlobalGroupsListViewRelatedPageNumber++;
+                }
+
                 this.GroupListViewRedraw();
                 RestoreGroupListViewItemHighLightedState();
                 this.groupsListView.Focus();
@@ -1257,9 +1366,9 @@ namespace PicturesSoft
 
                 this.ChildRep.SwapChilds(firstChildIndexToSwap, secondChildIndexToSwap);
 
-                if (secondChildIndexToSwap > 0 && secondChildIndexToSwap % 9 == 0)
+                if ((childsListView.SelectedIndices[0] + 1) % 9 == 0)
                 {
-                    GlobalListViewRelatedPageNumber++;
+                    GlobalChildsListViewRelatedPageNumber++;
                 }
 
                 this.ChildListViewRedraw();
@@ -2426,6 +2535,18 @@ namespace PicturesSoft
             }
 
             GroupListViewRedraw();
+        }
+
+        private void Form1_SizeChanged(object sender, EventArgs e)
+        {
+            if(groupsListView.Visible == true)
+            {
+                GroupListViewRedraw();
+            }
+            else if(childsListView.Visible == true)
+            {
+                ChildListViewRedraw();
+            }
         }
     }
 }
