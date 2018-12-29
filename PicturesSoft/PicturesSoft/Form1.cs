@@ -29,12 +29,18 @@ namespace PicturesSoft
         #region public properties
 
         public string XmlCnfgFilePath { get; private set; }
+        public string XmlFiscalPrinterFilePath { get; private set; }
+        public string XmlMenu1FilePath { get; private set; }
+        public string CustomReportFilePath { get; private set; }
         public string DestImgFolderPath { get; private set; }
         public string LocalCatalogFilePath { get; private set; }
+        public XNamespace Xmlns { get; set; }
         /// <summary>
         /// 
         /// </summary>
         public string UnixSpecifedXmlCnfgFilePath { get; private set; }
+        public string UnixSpecifedXmlFiscalPrinterFilePath { get; private set; }
+        public string UnixSpecifedXmlMenu1FilePath { get; private set; }
         /// <summary>
         /// File path for alternative weightCatalog-xml-config.xml file
         /// which is downloaded from cash box every time after connect and
@@ -85,6 +91,8 @@ namespace PicturesSoft
             //from nothing. So this property is just for supporting this old function.
             AppWorkMode = new WorkMode() { WorkType = WorkModeType.LoadFromFinalXml };
 
+            Xmlns = XNamespace.Get("http://crystals.ru/cash/settings");
+
             AlternativeXmlCnfgFilePath = Path.Combine(Path.GetDirectoryName(
                      Assembly.GetExecutingAssembly().Location), @"Alt\weightCatalog-xml-config.xml");
 
@@ -93,6 +101,12 @@ namespace PicturesSoft
 
             UnixSpecifedXmlCnfgFilePath = Path.Combine(Path.GetDirectoryName(
                      Assembly.GetExecutingAssembly().Location), @"UnixSpecifed\weightCatalog-xml-config.xml");
+
+            UnixSpecifedXmlFiscalPrinterFilePath = Path.Combine(Path.GetDirectoryName(
+                     Assembly.GetExecutingAssembly().Location), @"UnixSpecifed\fiscalPrinter-piritrbskno-config.xml");
+
+            UnixSpecifedXmlMenu1FilePath = Path.Combine(Path.GetDirectoryName(
+                     Assembly.GetExecutingAssembly().Location), @"UnixSpecifed\Menu1.xml");
 
             //the first step is to check if directory structure is set
             //if not we build it
@@ -114,6 +128,15 @@ namespace PicturesSoft
 
             XmlCnfgFilePath = Path.Combine(Path.GetDirectoryName(
                      Assembly.GetExecutingAssembly().Location), @"Temp\weightCatalog-xml-config.xml");
+
+            XmlFiscalPrinterFilePath = Path.Combine(Path.GetDirectoryName(
+                     Assembly.GetExecutingAssembly().Location), @"Temp\fiscalPrinter-piritrbskno-config.xml");
+
+            XmlMenu1FilePath = Path.Combine(Path.GetDirectoryName(
+                     Assembly.GetExecutingAssembly().Location), @"Temp\Menu1.xml");
+
+            CustomReportFilePath = Path.Combine(Path.GetDirectoryName(
+                     Assembly.GetExecutingAssembly().Location), @"Log\CustomReport.txt");
 
             if (File.Exists(XmlCnfgFilePath))
                 RepositoriesInit();
@@ -1499,7 +1522,7 @@ namespace PicturesSoft
                 return;
 
             if (File.Exists(XmlCnfgFilePath))
-                MakeUnixSpecifiedXmlConfigFile();
+                MakeAnyFileUnixSpecified(XmlCnfgFilePath, UnixSpecifedXmlCnfgFilePath);
 
             //We are using GroupListControl.dll of some guy from github. It's ListView with some overloaded methods.
             //There is little bit strange way of building this table, but at least it's working as expected.
@@ -1906,14 +1929,12 @@ namespace PicturesSoft
 
             XDocument xDoc = XDocument.Load(xDocFilePath);
 
-            XNamespace xmlns = XNamespace.Get("http://crystals.ru/cash/settings");
-
-            foreach (XElement groupElem in xDoc.Element(xmlns + "moduleConfig").
-                Element(xmlns + "property").Elements(xmlns + "group"))
+            foreach (XElement groupElem in xDoc.Element(Xmlns + "moduleConfig").
+                Element(Xmlns + "property").Elements(Xmlns + "group"))
             {
                 listOfAllImageFileNamesFromXmlConfigFile.Add((string)groupElem.Attribute("image-name"));
 
-                foreach (XElement childElem in groupElem.Elements(xmlns + "good"))
+                foreach (XElement childElem in groupElem.Elements(Xmlns + "good"))
                 {
                     listOfAllImageFileNamesFromXmlConfigFile.Add(
                         (string)childElem.Attribute("item") + ".png");
@@ -2012,7 +2033,7 @@ namespace PicturesSoft
 
             #endregion //Checking if image file names listed in LOCAL xml config file exist on LOCAL machine.
 
-            MakeUnixSpecifiedXmlConfigFile();
+            MakeAnyFileUnixSpecified(XmlCnfgFilePath, UnixSpecifedXmlCnfgFilePath);
 
             //< Getting list of all selected in corresponding checkedlistview cash boxes
             var listOfCheckedCashBoxes = this.cashesCheckedListBox.CheckedItems;
@@ -2427,11 +2448,18 @@ namespace PicturesSoft
         }
 
         /// <summary>
-        /// Rewriting line ending chars in xml config file
+        /// Rewriting line ending chars in any file
         /// for work stability on Unix systems.
         /// </summary>
-        private void MakeUnixSpecifiedXmlConfigFile()
+        private void MakeAnyFileUnixSpecified(string sourceFullFilePath, string destUnixSpecifiedFullFilePath)
         {
+            if (!File.Exists(sourceFullFilePath))
+            {
+                MessageBox.Show("Нет такого файла!\n" + sourceFullFilePath, "Ошибка",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }                
+
             //< Rewriting line ending chars in xml config file
             //for work stability on Unix systems before uploading. Also we do it before
             //checking file sizes to suit unix file style.
@@ -2442,12 +2470,13 @@ namespace PicturesSoft
             xmlWriterSettings.Indent = true;
 
             XmlDocument doc = new XmlDocument();
-            doc.Load(XmlCnfgFilePath);
+            
+            doc.Load(sourceFullFilePath);
 
-            if (File.Exists(UnixSpecifedXmlCnfgFilePath))
-                File.Delete(UnixSpecifedXmlCnfgFilePath);
+            if (File.Exists(destUnixSpecifiedFullFilePath))
+                File.Delete(destUnixSpecifiedFullFilePath);
 
-            using (XmlWriter writer = XmlWriter.Create(UnixSpecifedXmlCnfgFilePath, xmlWriterSettings))
+            using (XmlWriter writer = XmlWriter.Create(destUnixSpecifiedFullFilePath, xmlWriterSettings))
             {
                 doc.WriteTo(writer);
             }
@@ -2456,6 +2485,7 @@ namespace PicturesSoft
 
         private void testButton_Click(object sender, EventArgs e)
         {
+            /*
             var fileName = @"D:\Work\Проба.xlsx";
             var connectionString = string.Format("Provider=Microsoft.Jet.OLEDB.4.0; " +
                 "data source={0}; Extended Properties=Excel 8.0;", fileName);
@@ -2535,6 +2565,138 @@ namespace PicturesSoft
             }
 
             GroupListViewRedraw();
+            */
+
+            //Shop shop = ListOfShopsWithCashBoxes[0];            
+
+            Shop shop = new Shop()
+            {
+                Name = "Test",
+                Code = "1",
+                Address = "Address",
+                CashBoxes = new List<CashBox>()
+                {
+                    new CashBox() {
+                        IpAddress = "192.168.0.224",
+                        ShopCode = "1",
+                        Number = "1"
+                    }
+                }
+            };
+
+            if (!File.Exists(UnixSpecifedXmlMenu1FilePath))
+                MakeAnyFileUnixSpecified(XmlMenu1FilePath, UnixSpecifedXmlMenu1FilePath);
+
+            //Making head for SummaryNotification form to fill table there
+            GroupListControl uploadingResultsGroupListControl = new GroupListControl();
+
+            //column headers for cashbox
+            ListGroup uploadingResultsColumnHeadersForShopInfoListGroup = new ListGroup();
+            uploadingResultsColumnHeadersForShopInfoListGroup.BackColor = Color.Blue;
+            uploadingResultsColumnHeadersForShopInfoListGroup.Columns.Add("Имя магазина", 150);
+            uploadingResultsColumnHeadersForShopInfoListGroup.Columns.Add("Код магазина", 150);
+            uploadingResultsColumnHeadersForShopInfoListGroup.Columns.Add("Результат", 150);
+            uploadingResultsGroupListControl.Controls.Add(uploadingResultsColumnHeadersForShopInfoListGroup);
+
+            Logger.Info("===== Начало операции загрузки на кассы магазина " + shop.Name + " ======");
+
+            //adding info about cashbox
+            ListGroup infoAboutShopsWithNestedCashBoxesUploadInfoListGroup = new ListGroup();
+            infoAboutShopsWithNestedCashBoxesUploadInfoListGroup.Columns.Add(shop.Name, 150);
+            infoAboutShopsWithNestedCashBoxesUploadInfoListGroup.Columns.Add(shop.Code, 150);
+            infoAboutShopsWithNestedCashBoxesUploadInfoListGroup.Columns.Add("Успешно", 150);
+
+            //column headers for files description for corresponding cashbox
+            ListViewItem cashBoxUploadInfoColumHeaderslvi =
+                infoAboutShopsWithNestedCashBoxesUploadInfoListGroup.Items.Add("Ip кассы");
+            cashBoxUploadInfoColumHeaderslvi.ForeColor = Color.White;
+            cashBoxUploadInfoColumHeaderslvi.BackColor = Color.Blue;
+            cashBoxUploadInfoColumHeaderslvi.SubItems.Add("Номер кассы");
+            cashBoxUploadInfoColumHeaderslvi.SubItems.Add("Результат");
+            //>   
+
+            StringBuilder stringBuilder = new StringBuilder();
+
+            string anotherString = shop.Name + " (все";
+
+            foreach (CashBox cashBox in shop.CashBoxes)
+            {
+                string cashBoxIpAddress = cashBox.IpAddress;
+                string cashBoxNumber = cashBox.Number;
+
+                //adding info about cashbox
+                ListViewItem currentCashBoxUploadInfolvi =
+                    infoAboutShopsWithNestedCashBoxesUploadInfoListGroup.Items.Add(cashBoxIpAddress);
+                currentCashBoxUploadInfolvi.SubItems.Add(cashBoxNumber);
+
+                #region UPLOADING info TO cash box according to created before "itemsto- and itemsnotto- UPLOAD" lists            
+
+                using (var client = new Renci.SshNet.ScpClient(cashBoxIpAddress, 22, "tc", "324012"))
+                {
+                    try
+                    {
+                        Logger.Info("Подключение к кассе №" + cashBoxNumber + " Ip: " + cashBoxIpAddress);
+                        client.Connect();
+                        Logger.Info("Успешно!");
+                        Logger.Info("Отправка файла Menu1.xml на кассу");
+                        client.Upload(new FileInfo(UnixSpecifedXmlMenu1FilePath),
+                                    "/home/tc/storage/crystal-cash/config/plugins/Menu1.xml");
+                        Logger.Info("Успешно!");
+                        currentCashBoxUploadInfolvi.SubItems.Add("Успешно");
+                    }
+                    catch (Exception exception)
+                    {
+                        Logger.Error("\nПроизошла ошибка подключения к кассе либо выполнения команды." +
+                            "Ошибка. Касса №" + cashBoxNumber + " " + cashBoxIpAddress, exception);
+                        currentCashBoxUploadInfolvi.SubItems.Add("Есть ошибки");
+                        if (!anotherString.Contains(", кроме "))
+                            anotherString += ", кроме ";
+                        anotherString += "Касса №" + cashBoxNumber + " " + cashBoxIpAddress + " ";
+                    }
+                    finally
+                    {
+                        if (client.IsConnected)
+                        {
+                            client.Disconnect();
+                            Logger.Info("Отключение от кассы №" + cashBoxNumber + " Ip: " + cashBoxIpAddress);
+                        }
+                    }
+                }                
+
+                #endregion //UPLOADING info TO cash box according to created "itemsto- and itemsnotto- UPLOAD" lists before
+            }
+
+            stringBuilder.Append(anotherString + ")");
+
+            using (var tw = new StreamWriter(CustomReportFilePath, false, Encoding.UTF8))
+            {
+                tw.WriteLine(stringBuilder.ToString());
+            }
+
+            foreach (ListViewItem lvi in infoAboutShopsWithNestedCashBoxesUploadInfoListGroup.Items)
+            {
+                foreach (ListViewItem.ListViewSubItem subLvi in lvi.SubItems)
+                {
+                    if (subLvi.Text.Equals("Есть ошибки"))
+                    {
+                        infoAboutShopsWithNestedCashBoxesUploadInfoListGroup
+                            .Columns[2].Text = "Есть ошибки";
+                        break;
+                    }
+                }
+            }
+
+            uploadingResultsGroupListControl.Controls
+                    .Add(infoAboutShopsWithNestedCashBoxesUploadInfoListGroup);
+
+            Logger.Info("===== Конец операции загрузки на кассы магазина " + shop.Name + " ======");
+
+            SummaryNotificationForm summaryNotificationFormAfterDownload =
+                    new SummaryNotificationForm(uploadingResultsGroupListControl,
+                        new WorkMode() { WorkType = WorkModeType.UploadToCashBoxAndShowCorrespondingResults });
+
+            summaryNotificationFormAfterDownload.ShowDialog();
+            summaryNotificationFormAfterDownload.Dispose();
         }
 
         private void Form1_SizeChanged(object sender, EventArgs e)
@@ -2546,6 +2708,295 @@ namespace PicturesSoft
             else if(childsListView.Visible == true)
             {
                 ChildListViewRedraw();
+            }
+        }
+
+        private void RedTestBtn_Click(object sender, EventArgs e)
+        {            
+            //< Getting list of all selected in corresponding checkedlistview cash boxes
+            var listOfCheckedCashBoxes = this.cashesCheckedListBox.CheckedItems;
+
+            Logger.Info("Начало операции загрузки на кассы магазина " + this.shopListComboBox.SelectedItem.ToString());
+
+            if (listOfCheckedCashBoxes.Count == 0)
+            {
+                MessageBox.Show("Не отмечено ни одной кассы! Отметьте хотя бы одно кассу, затем попробуйте ещё раз.",
+                    "Внимание!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            //>
+
+            //Making head for SummaryNotification form to fill table there
+            GroupListControl uploadingResultsGroupListControl = new GroupListControl();
+
+            //column headers for cashbox
+            ListGroup uploadingResultsColumnHeadersForCashBoxInfoListGroup = new ListGroup();
+            uploadingResultsColumnHeadersForCashBoxInfoListGroup.BackColor = Color.Blue;
+            uploadingResultsColumnHeadersForCashBoxInfoListGroup.Columns.Add("Ip Адресс кассы", 120);
+            uploadingResultsColumnHeadersForCashBoxInfoListGroup.Columns.Add("Номер кассы", 150);
+            uploadingResultsColumnHeadersForCashBoxInfoListGroup.Columns.Add("Результат", 150);
+            uploadingResultsGroupListControl.Controls.Add(uploadingResultsColumnHeadersForCashBoxInfoListGroup);
+
+            foreach (CashBox cashBox in listOfCheckedCashBoxes)
+            {
+                string cashBoxIpAddress = cashBox.IpAddress;
+                string cashBoxNumber = cashBox.Number;
+
+                bool isFuncNeededToAbort = false;
+
+                if (File.Exists(XmlFiscalPrinterFilePath))
+                    File.Delete(XmlFiscalPrinterFilePath);
+
+                //adding info about cashbox
+                ListGroup infoAboutCashBoxWithNestedFilesUploadingResultsListGroup = new ListGroup();
+                infoAboutCashBoxWithNestedFilesUploadingResultsListGroup.Columns.Add(cashBoxIpAddress, 120);
+                infoAboutCashBoxWithNestedFilesUploadingResultsListGroup.Columns.Add(cashBoxNumber, 150);
+                
+                using (var client = new Renci.SshNet.ScpClient(cashBoxIpAddress, 22, "tc", "324012"))
+                {
+                    try
+                    {
+                        Logger.Info("Подключение к кассе №" + cashBoxNumber + " Ip: " + cashBoxIpAddress);
+                        client.Connect();
+                        Logger.Info("Успешно!");
+                        Logger.Info("Скачивание файла /home/tc/storage/crystal-cash/config/plugins/fiscalPrinter-piritrbskno-config.xml");
+                        client.Download("/home/tc/storage/crystal-cash/config/plugins/fiscalPrinter-piritrbskno-config.xml",
+                                   new FileInfo(XmlFiscalPrinterFilePath));
+                        Logger.Info("Успешно!");
+                    }
+                    catch (Exception exception)
+                    {
+                        Logger.Error("\nПроизошла ошибка подключения к кассе либо выполнения команды." +
+                            "Ошибка. Касса №" + cashBoxNumber + " " + cashBoxIpAddress, exception);
+                        isFuncNeededToAbort = true;
+                    }
+                    finally
+                    {
+                        if (client.IsConnected)
+                        {
+                            client.Disconnect();
+                            Logger.Info("Отключение от кассы №" + cashBoxNumber + " Ip: " + cashBoxIpAddress);
+                        }                            
+                    }
+                }
+                
+                if (isFuncNeededToAbort)
+                {
+                    infoAboutCashBoxWithNestedFilesUploadingResultsListGroup.Columns.Add("Есть ошибки", 150);
+                    uploadingResultsGroupListControl.Controls
+                    .Add(infoAboutCashBoxWithNestedFilesUploadingResultsListGroup);
+                    continue;
+                }                    
+
+                XDocument xDoc = XDocument.Load(XmlFiscalPrinterFilePath);
+
+                XElement commandsReadTimeoutXElementToFind = xDoc.Element(Xmlns + "moduleConfig")
+                    .Elements(Xmlns + "property")
+                    .FirstOrDefault(n => n.Attribute("key").Value.Equals("commandsReadTimeout"));
+
+                if (commandsReadTimeoutXElementToFind == null)
+                {
+                    XElement commandsReadTimeoutXElementToAdd = new XElement(
+                        Xmlns + "property",
+                        new XAttribute("key", "commandsReadTimeout"),
+                        new XElement(Xmlns + "property", new XAttribute("key", "0x00"), new XAttribute("value", "21000")),
+                        new XElement(Xmlns + "property", new XAttribute("key", "0x21"), new XAttribute("value", "21000")),
+                        new XElement(Xmlns + "property", new XAttribute("key", "0x22"), new XAttribute("value", "120000")),
+                        new XElement(Xmlns + "property", new XAttribute("key", "0x30"), new XAttribute("value", "21000")),
+                        new XElement(Xmlns + "property", new XAttribute("key", "0x31"), new XAttribute("value", "21000")),
+                        new XElement(Xmlns + "property", new XAttribute("key", "0x32"), new XAttribute("value", "21000")),
+                        new XElement(Xmlns + "property", new XAttribute("key", "0x35"), new XAttribute("value", "21000")),
+                        new XElement(Xmlns + "property", new XAttribute("key", "0x96"), new XAttribute("value", "21000"))
+                        );
+                    xDoc.Element(Xmlns + "moduleConfig").Add(commandsReadTimeoutXElementToAdd);
+                }
+                else
+                {
+                    commandsReadTimeoutXElementToFind.Remove();
+                    xDoc.Element(Xmlns + "moduleConfig").Add(new XElement(
+                        Xmlns + "property",
+                        new XAttribute("key", "commandsReadTimeout"),
+                        new XElement(Xmlns + "property", new XAttribute("key", "0x00"), new XAttribute("value", "21000")),
+                        new XElement(Xmlns + "property", new XAttribute("key", "0x21"), new XAttribute("value", "21000")),
+                        new XElement(Xmlns + "property", new XAttribute("key", "0x22"), new XAttribute("value", "120000")),
+                        new XElement(Xmlns + "property", new XAttribute("key", "0x30"), new XAttribute("value", "21000")),
+                        new XElement(Xmlns + "property", new XAttribute("key", "0x31"), new XAttribute("value", "21000")),
+                        new XElement(Xmlns + "property", new XAttribute("key", "0x32"), new XAttribute("value", "21000")),
+                        new XElement(Xmlns + "property", new XAttribute("key", "0x35"), new XAttribute("value", "21000")),
+                        new XElement(Xmlns + "property", new XAttribute("key", "0x96"), new XAttribute("value", "21000"))
+                        )
+                        );
+                }
+
+                xDoc.Save(XmlFiscalPrinterFilePath);
+
+                MakeAnyFileUnixSpecified(XmlFiscalPrinterFilePath, UnixSpecifedXmlFiscalPrinterFilePath);
+
+                #region UPLOADING info TO cash box according to created before "itemsto- and itemsnotto- UPLOAD" lists            
+
+                using (var client = new Renci.SshNet.ScpClient(cashBoxIpAddress, 22, "tc", "324012"))
+                {
+                    try
+                    {
+                        Logger.Info("Подключение к кассе №" + cashBoxNumber + " Ip: " + cashBoxIpAddress);
+                        client.Connect();
+                        Logger.Info("Успешно!");
+                        Logger.Info("Отправка файла fiscalPrinter-piritrbskno-config.xml на кассу");
+                        client.Upload(new FileInfo(UnixSpecifedXmlFiscalPrinterFilePath),
+                                    "/home/tc/storage/crystal-cash/config/plugins/fiscalPrinter-piritrbskno-config.xml");
+                        Logger.Info("Успешно!");                        
+                        infoAboutCashBoxWithNestedFilesUploadingResultsListGroup.Columns.Add("Успешно", 150);
+                    }
+                    catch (Exception exception)
+                    {
+                        Logger.Error("\nПроизошла ошибка подключения к кассе либо выполнения команды." +
+                            "Ошибка. Касса №" + cashBoxNumber + " " + cashBoxIpAddress, exception);
+                        infoAboutCashBoxWithNestedFilesUploadingResultsListGroup.Columns.Add("Есть ошибки", 150);
+                    }
+                    finally
+                    {
+                        if (client.IsConnected)
+                        {
+                            client.Disconnect();
+                            Logger.Info("Отключение от кассы №" + cashBoxNumber + " Ip: " + cashBoxIpAddress);
+                        }                            
+                    }
+                }
+
+                uploadingResultsGroupListControl.Controls
+                    .Add(infoAboutCashBoxWithNestedFilesUploadingResultsListGroup);
+
+                #endregion //UPLOADING info TO cash box according to created "itemsto- and itemsnotto- UPLOAD" lists before
+            }
+
+            SummaryNotificationForm summaryNotificationFormAfterDownload =
+                    new SummaryNotificationForm(uploadingResultsGroupListControl,
+                        new WorkMode() { WorkType = WorkModeType.UploadToCashBoxAndShowCorrespondingResults });
+
+            summaryNotificationFormAfterDownload.ShowDialog();
+            summaryNotificationFormAfterDownload.Dispose();
+
+            Logger.Info("Конец операции загрузки на кассы магазина " + this.shopListComboBox.SelectedItem.ToString());
+        }
+
+        private void SendCustomFileToCashBoxBtn_Click(object sender, EventArgs e)
+        {
+            if (!File.Exists(UnixSpecifedXmlMenu1FilePath))
+                MakeAnyFileUnixSpecified(XmlMenu1FilePath, UnixSpecifedXmlMenu1FilePath);
+
+            //Making head for SummaryNotification form to fill table there
+            GroupListControl uploadingResultsGroupListControl = new GroupListControl();
+
+            //column headers for cashbox
+            ListGroup uploadingResultsColumnHeadersForShopInfoListGroup = new ListGroup();
+            uploadingResultsColumnHeadersForShopInfoListGroup.BackColor = Color.Blue;
+            uploadingResultsColumnHeadersForShopInfoListGroup.Columns.Add("Имя магазина", 150);
+            uploadingResultsColumnHeadersForShopInfoListGroup.Columns.Add("Код магазина", 150);
+            uploadingResultsColumnHeadersForShopInfoListGroup.Columns.Add("Результат", 150);
+            uploadingResultsGroupListControl.Controls.Add(uploadingResultsColumnHeadersForShopInfoListGroup);
+
+            StringBuilder customShopsReportStringBuilder = new StringBuilder();
+
+            foreach (Shop shop in ListOfShopsWithCashBoxes)
+            {
+                Logger.Info("===== Начало операции загрузки на кассы магазина " + shop.Name + " ======");                
+
+                string currentShopReportInfoStr = shop.Name + " (все";
+
+                //adding info about cashbox
+                ListGroup infoAboutShopsWithNestedCashBoxesUploadInfoListGroup = new ListGroup();
+                infoAboutShopsWithNestedCashBoxesUploadInfoListGroup.Columns.Add(shop.Name, 150);
+                infoAboutShopsWithNestedCashBoxesUploadInfoListGroup.Columns.Add(shop.Code, 150);
+                infoAboutShopsWithNestedCashBoxesUploadInfoListGroup.Columns.Add("Успешно", 150);
+
+                //column headers for files description for corresponding cashbox
+                ListViewItem cashBoxUploadInfoColumHeaderslvi =
+                    infoAboutShopsWithNestedCashBoxesUploadInfoListGroup.Items.Add("Ip кассы");
+                cashBoxUploadInfoColumHeaderslvi.ForeColor = Color.White;
+                cashBoxUploadInfoColumHeaderslvi.BackColor = Color.Blue;
+                cashBoxUploadInfoColumHeaderslvi.SubItems.Add("Номер кассы");
+                cashBoxUploadInfoColumHeaderslvi.SubItems.Add("Результат");
+                //>   
+
+                foreach (CashBox cashBox in shop.CashBoxes)
+                {
+                    string cashBoxIpAddress = cashBox.IpAddress;
+                    string cashBoxNumber = cashBox.Number;
+
+                    //adding info about cashbox
+                    ListViewItem currentCashBoxUploadInfolvi =
+                        infoAboutShopsWithNestedCashBoxesUploadInfoListGroup.Items.Add(cashBoxIpAddress);
+                    currentCashBoxUploadInfolvi.SubItems.Add(cashBoxNumber);
+
+                    #region UPLOADING info TO cash box according to created before "itemsto- and itemsnotto- UPLOAD" lists            
+
+                    using (var client = new Renci.SshNet.ScpClient(cashBoxIpAddress, 22, "tc", "324012"))
+                    {
+                        try
+                        {
+                            Logger.Info("Подключение к кассе №" + cashBoxNumber + " Ip: " + cashBoxIpAddress);
+                            client.Connect();
+                            Logger.Info("Успешно!");
+                            Logger.Info("Отправка файла Menu1.xml на кассу");
+                            client.Upload(new FileInfo(UnixSpecifedXmlMenu1FilePath),
+                                        "/home/tc/storage/crystal-cash/config/plugins/Menu1.xml");
+                            Logger.Info("Успешно!");
+                            currentCashBoxUploadInfolvi.SubItems.Add("Успешно");
+                        }
+                        catch (Exception exception)
+                        {
+                            Logger.Error("\nПроизошла ошибка подключения к кассе либо выполнения команды." +
+                                "Ошибка. Касса №" + cashBoxNumber + " " + cashBoxIpAddress, exception);
+                            currentCashBoxUploadInfolvi.SubItems.Add("Есть ошибки");
+                            if (!currentShopReportInfoStr.Contains(", кроме "))
+                                currentShopReportInfoStr += ", кроме ";
+                            currentShopReportInfoStr += "Касса №" + cashBoxNumber + " " + cashBoxIpAddress + " ";
+                        }
+                        finally
+                        {
+                            if (client.IsConnected)
+                            {
+                                client.Disconnect();
+                                Logger.Info("Отключение от кассы №" + cashBoxNumber + " Ip: " + cashBoxIpAddress);
+                            }
+                        }
+                    }                   
+
+                    #endregion //UPLOADING info TO cash box according to created "itemsto- and itemsnotto- UPLOAD" lists before
+                }
+
+                customShopsReportStringBuilder.AppendLine(currentShopReportInfoStr + ")");
+
+                foreach (ListViewItem lvi in infoAboutShopsWithNestedCashBoxesUploadInfoListGroup.Items)
+                {
+                    foreach (ListViewItem.ListViewSubItem subLvi in lvi.SubItems)
+                    {
+                        if (subLvi.Text.Equals("Есть ошибки"))
+                        {
+                            infoAboutShopsWithNestedCashBoxesUploadInfoListGroup
+                                .Columns[2].Text = "Есть ошибки";
+                            break;
+                        }
+                    }
+                }
+
+                uploadingResultsGroupListControl.Controls
+                        .Add(infoAboutShopsWithNestedCashBoxesUploadInfoListGroup);
+
+                Logger.Info("===== Конец операции загрузки на кассы магазина " + shop.Name + " ======");
+                               
+            }
+            
+            SummaryNotificationForm summaryNotificationFormAfterDownload =
+                    new SummaryNotificationForm(uploadingResultsGroupListControl,
+                        new WorkMode() { WorkType = WorkModeType.UploadToCashBoxAndShowCorrespondingResults });
+
+            summaryNotificationFormAfterDownload.ShowDialog();
+            summaryNotificationFormAfterDownload.Dispose();
+
+            using (var tw = new StreamWriter(CustomReportFilePath, false, Encoding.UTF8))
+            {
+                tw.Write(customShopsReportStringBuilder.ToString());
             }
         }
     }

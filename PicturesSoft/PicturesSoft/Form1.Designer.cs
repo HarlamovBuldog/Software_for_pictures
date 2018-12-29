@@ -51,6 +51,8 @@
             this.selectAllCashBoxesCheckBox = new System.Windows.Forms.CheckBox();
             this.catalogOrientationLabel = new System.Windows.Forms.Label();
             this.testButton = new System.Windows.Forms.Button();
+            this.RedTestBtn = new System.Windows.Forms.Button();
+            this.SendCustomFileToCashBoxBtn = new System.Windows.Forms.Button();
             this.moveObjectsBtnPanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -376,23 +378,54 @@
             // 
             // testButton
             // 
-            this.testButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.testButton.BackColor = System.Drawing.Color.Red;
             this.testButton.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.testButton.ForeColor = System.Drawing.Color.Blue;
-            this.testButton.Location = new System.Drawing.Point(1096, 526);
+            this.testButton.ForeColor = System.Drawing.Color.White;
+            this.testButton.Location = new System.Drawing.Point(1052, 502);
             this.testButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.testButton.Name = "testButton";
-            this.testButton.Size = new System.Drawing.Size(87, 28);
+            this.testButton.Size = new System.Drawing.Size(141, 28);
             this.testButton.TabIndex = 26;
             this.testButton.Text = "ТЕСТ";
-            this.testButton.UseVisualStyleBackColor = true;
+            this.testButton.UseVisualStyleBackColor = false;
             this.testButton.Click += new System.EventHandler(this.testButton_Click);
+            // 
+            // RedTestBtn
+            // 
+            this.RedTestBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.RedTestBtn.BackColor = System.Drawing.Color.Red;
+            this.RedTestBtn.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.RedTestBtn.ForeColor = System.Drawing.Color.GhostWhite;
+            this.RedTestBtn.Location = new System.Drawing.Point(73, 567);
+            this.RedTestBtn.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.RedTestBtn.Name = "RedTestBtn";
+            this.RedTestBtn.Size = new System.Drawing.Size(160, 28);
+            this.RedTestBtn.TabIndex = 27;
+            this.RedTestBtn.Text = "Красная кнопка";
+            this.RedTestBtn.UseVisualStyleBackColor = false;
+            this.RedTestBtn.Click += new System.EventHandler(this.RedTestBtn_Click);
+            // 
+            // SendCustomFileToCashBoxBtn
+            // 
+            this.SendCustomFileToCashBoxBtn.BackColor = System.Drawing.Color.Red;
+            this.SendCustomFileToCashBoxBtn.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.SendCustomFileToCashBoxBtn.ForeColor = System.Drawing.Color.White;
+            this.SendCustomFileToCashBoxBtn.Location = new System.Drawing.Point(713, 57);
+            this.SendCustomFileToCashBoxBtn.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.SendCustomFileToCashBoxBtn.Name = "SendCustomFileToCashBoxBtn";
+            this.SendCustomFileToCashBoxBtn.Size = new System.Drawing.Size(246, 28);
+            this.SendCustomFileToCashBoxBtn.TabIndex = 28;
+            this.SendCustomFileToCashBoxBtn.Text = "Отправка файла-меню";
+            this.SendCustomFileToCashBoxBtn.UseVisualStyleBackColor = false;
+            this.SendCustomFileToCashBoxBtn.Click += new System.EventHandler(this.SendCustomFileToCashBoxBtn_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1377, 678);
+            this.Controls.Add(this.SendCustomFileToCashBoxBtn);
+            this.Controls.Add(this.RedTestBtn);
             this.Controls.Add(this.testButton);
             this.Controls.Add(this.catalogOrientationLabel);
             this.Controls.Add(this.selectAllCashBoxesCheckBox);
@@ -449,6 +482,8 @@
         private System.Windows.Forms.CheckBox selectAllCashBoxesCheckBox;
         private System.Windows.Forms.Label catalogOrientationLabel;
         private System.Windows.Forms.Button testButton;
+        private System.Windows.Forms.Button RedTestBtn;
+        private System.Windows.Forms.Button SendCustomFileToCashBoxBtn;
     }
 }
 
